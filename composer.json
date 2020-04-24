@@ -1,0 +1,24 @@
+{
+    "name": "aliirfaan/laravel-simple-otp",
+    "description": "Send and verify OTP using SMS in Laravel",
+    "license": "MIT",
+    "keywords": ["Laravel", "OTP", "One time password", "SMS"],
+    "authors": [
+        {
+            "name": "aliirfaan",
+            "email": "aliirfaan.freelance@gmail.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "aliirfaan\\LaravelSimpleOtp\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "aliirfaan\\LaravelSimpleOtp\\SimpleOtpServiceProvider"
+            ]
+        }
+    }
+}
