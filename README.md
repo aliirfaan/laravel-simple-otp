@@ -224,7 +224,7 @@ class TestController extends Controller
         // generate OTP
         $otpCode = $otpHelperService->generateOtpCode();
         // hash OTP, call this function even if you do not want to hash, it will return hashed/unhashed based on configuration key otp_should_encode
-        $otpCode = $otpHelperService->hashOtpCode($otpCode);
+        $hashedOtpCode = $otpHelperService->hashOtpCode($otpCode);
 
         // model type can be anything but it must be unique if you want to send OTP to multiple model classes
         // it can also be the class name of the object. You get it using new \ReflectionClass($yourExampleModelObj))->getShortName()
@@ -234,7 +234,7 @@ class TestController extends Controller
         $otpData = [
             'model_id' => $modelId,
             'model_type' => $modelType,
-            'otp_code' => $otpCode
+            'otp_code' => $hashedOtpCode
         ];
 
         // create otp
