@@ -115,7 +115,7 @@ List of supported communication providers with settings
 ## Services
 
 ### Implementing your service based on provided interface  
-**If you are using popular services, check out [tpaksu/laravel-otp-login](https://github.com/tpaksu/laravel-otp-login) to get ready made service implemenations**
+**If you are using popular services, check out [tpaksu/laravel-otp-login](https://github.com/tpaksu/laravel-otp-login) to get ready made service implementations**
 
 Example class:
 
