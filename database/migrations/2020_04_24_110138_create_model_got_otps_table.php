@@ -18,7 +18,7 @@ class CreateModelGotOtpsTable extends Migration
             $table->unsignedBigInteger('model_id')->index();
             $table->string('model_type')->index();
             $table->string('otp_code');
-            $table->boolean('otp_was_validated');
+            $table->boolean('otp_was_validated')->nullable();
             $table->timestamps();
         });
     }
