@@ -150,10 +150,10 @@ class ExampleOtpProviderService implements OtpCommunicationServiceInterface
      * Send OTP code to a recipient phone number
      *
      * @param string $phoneNumber  Recipient phone numbet
-     * @param string $otpCode : OTP code to send
+     * @param string $message : Message to send
      * @return bool
      */
-    public function  sendSms($phoneNumber, $otpCode)
+    public function  sendSms($phoneNumber, $message)
     {
         // your validation
 
@@ -241,7 +241,8 @@ class TestController extends Controller
         $createOtp = $this->otpModel->createOtp($otpData);
 
         // send otp
-        $sendOtp = $otpHelperService->sendOtp($phoneNumber, $otpCode);
+        $message = 'Your OTP is: '. $otpCode;
+        $sendOtp = $otpHelperService->sendOtp($phoneNumber, $message);
     }
 
     /**

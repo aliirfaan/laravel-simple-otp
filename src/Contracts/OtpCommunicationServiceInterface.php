@@ -13,8 +13,8 @@ interface OtpCommunicationServiceInterface
      * Send OTP code to a recipient phone number
      *
      * @param string $phoneNumber  Recipient phone numbet
-     * @param string $otpCode : OTP code to send
+     * @param string $message : Message to send
      * @return bool
      */
-    public function sendSms($phoneNumber, $otpCode);
+    public function sendSms($phoneNumber, $message);
 }

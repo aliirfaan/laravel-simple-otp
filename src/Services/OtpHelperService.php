@@ -118,14 +118,14 @@ class OtpHelperService
      * Send OTP code to a phone number using configured communication service
      *
      * @param  string $phoneNumber Recipient phone number
-     * @param  string $otpCode OTP code to send
+     * @param string $message : Message to send
      * @return bool Whether successfully sent or not
      */
-    public function sendOtp($phoneNumber, $otpCode)
+    public function sendOtp($phoneNumber, $message)
     {
         $otpCommunicationService = $this->getOtpCommunicationService();
         if ($otpCommunicationService) {
-            return $otpCommunicationService->sendSms($phoneNumber, $otpCode);
+            return $otpCommunicationService->sendSms($phoneNumber, $message);
         }
 
         return false;
