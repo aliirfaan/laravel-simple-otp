@@ -4,7 +4,9 @@ namespace aliirfaan\LaravelSimpleOtp\Services;
 
 use Illuminate\Support\Facades\Hash;
 use \Carbon\Carbon;
-use aliirfaan\LaravelSimpleOtp\Exceptions;
+use aliirfaan\LaravelSimpleOtp\Exceptions\ExpiredException;
+use aliirfaan\LaravelSimpleOtp\Exceptions\NotFoundException;
+use aliirfaan\LaravelSimpleOtp\Exceptions\NotMatchException;
 
 /**
  * OTP helper service

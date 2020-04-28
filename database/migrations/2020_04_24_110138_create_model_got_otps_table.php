@@ -15,7 +15,7 @@ class CreateModelGotOtpsTable extends Migration
     {
         Schema::create('model_got_otps', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('model_id')->index('model_id_index');
+            $table->string('model_id')->index('model_id_index');
             $table->string('model_type')->index('model_type_index');
             $table->string('otp_code');
             $table->boolean('otp_was_validated')->nullable();

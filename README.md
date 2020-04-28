@@ -199,6 +199,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use aliirfaan\LaravelSimpleOtp\Models\ModelGotOtp; // otp model
 use aliirfaan\LaravelSimpleOtp\Services\OtpHelperService; // otp helper service
+use aliirfaan\LaravelSimpleOtp\Exceptions\ExpiredException;
+use aliirfaan\LaravelSimpleOtp\Exceptions\NotFoundException;
+use aliirfaan\LaravelSimpleOtp\Exceptions\NotMatchException;
 
 class TestController extends Controller
 {
