@@ -12,7 +12,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com) and this p
 ### Changed
 
 - Updated changelog format
-- README.md to reflect createOrUpdateOtp usage
 
 ### Deprecated
 
