@@ -55,7 +55,7 @@ return [
     'otp_default_communication_service' => env('OTP_SERVICE', 'example_service'),
     'otp_communication_services' => [
         'example_service' => [
-            'class' => \Services\ExampleOtpProviderService::class,
+            'class' => App\Services\ExampleOtpProviderService::class,
             'username' => env('OTP_SERVICE_USERNAME', null),
             'password' => env('OTP_SERVICE_PASSWORD', null),
             'from' => env('OTP_SERVICE_FROM', null)
