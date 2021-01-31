@@ -1,6 +1,6 @@
 # Laravel Simple OTP
 
-This package allows you to generate OTP (One time password) and send the OTP via SMS using your configured and implemented communication service provider. You can then verify the OTP code and grant access based on its validity.
+This package allows you to generate OTP (One time password). You can then verify the OTP code and grant access based on its validity.
 
 ## Flexibility
 
@@ -12,7 +12,6 @@ This package is not tied to Laravel Auth and you can use it to send OTP to any m
 * Associate OTP code with a model object using the object id and object type
 * Hash OTP code for better security
 * Validate OTP code based on presence, equality and expiry
-* Provides an interface to implement your communication service provider
 * Throws custom exceptions
 
 ## Requirements
@@ -88,105 +87,6 @@ Uses framework hashing to hash OTP. See security > hashing in Laravel docs
 
 ```php
 'otp_should_encode' => false
-```
-
-otp_default_communication_service | String  
-The name of the otp service provider you want to use
-
-```php
-'otp_default_communication_service' => env('OTP_SERVICE', 'example_service')
-```
-
-otp_communication_services | Array  
-List of supported communication providers with settings  
-**You are required to implement your own service based on the interface provided. It'll be explained in detail in the [Services](#services) section of this documentation.** 
-
-```php
-'otp_communication_services' => [
-    'example_service' => [
-        'class' => \Services\ExampleOtpProviderService::class,
-        'username' => env('OTP_SERVICE_USERNAME', null),
-        'password' => env('OTP_SERVICE_PASSWORD', null),
-        'from' => env('OTP_SERVICE_FROM', null)
-    ]
-]
-```
-
-## Services
-
-### Implementing your service based on provided interface  
-**If you are using popular services, check out [tpaksu/laravel-otp-login](https://github.com/tpaksu/laravel-otp-login) to get ready made service implementations**
-
-Example class:
-
-```php
-<?php
-
-// if you are writing your service in App\Services folder
-namespace App\Services;
-
-// this is required as we will based our implementation on this interface
-use aliirfaan\LaravelSimpleOtp\Contracts\OtpCommunicationServiceInterface;
-
-// your class implementation
-class ExampleOtpProviderService implements OtpCommunicationServiceInterface
-{
-    // this is only an example, attributes will depend on the service you are implementing
-    private $username;
-    private $password;
-    private $from;
-
-    /**
-     * constructor
-     */
-    public function __construct()
-    {
-        $this->username = config('otp.otp_communication_services.example_service.username', null);
-        $this->password = config('otp.otp_communication_services.example_service.password', null);
-        $this->from = config('otp.otp_communication_services.example_service.from', null);
-    }
-
-    /**
-     * Send OTP code to a recipient phone number
-     *
-     * @param string $phoneNumber  Recipient phone numbet
-     * @param string $message : Message to send
-     * @return bool
-     */
-    public function  sendSms($phoneNumber, $message)
-    {
-        // your validation
-
-        try {
-            // send the SMS to the phone number by calling service API
-            // get the response
-            // return true or false
-            return $result;
-        }
-        catch(\Exception $ex)
-        {
-            // return false
-        }
-    }
-}
-
-```
-
-### Update services configuration in `otp.php`
-
-```php
-'otp_default_communication_service' => env('OTP_SERVICE', 'example_service')
-```
-
-```php
-'otp_communication_services' => [
-    'example_service' => [
-        'class' => App\Services\ExampleOtpProviderService::class,
-        'username' => env('OTP_SERVICE_USERNAME', null),
-        'password' => env('OTP_SERVICE_PASSWORD', null),
-        'from' => env('OTP_SERVICE_FROM', null)
-    ]
-]
 ```
 
 ## Usage
