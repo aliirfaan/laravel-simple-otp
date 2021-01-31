@@ -15,36 +15,32 @@ class ModelGotOtp extends Model
      * Add an OTP row to table
      *
      * @param  array $otpData
+     * @param  bool $updateRow whether to update the row if row with model_id and model_type already exists
      * @return ModelGotOtp | bool Object if success or false if unsuccessful
      */
-    public function createOtp($otpData)
+    public function createOtp($otpData, $updateRow = true)
     {
-        return ModelGotOtp::create([
-            'model_id' => $otpData['model_id'],
-            'model_type' => $otpData['model_type'],
-            'otp_code' => $otpData['otp_code'],
-        ]);
-    }
+        $result = false;
 
-    /**
-     * Adds or updates an OTP row to table
-     * 
-     * If a row with model_id and model_type already exists, update else insert new row
-     *
-     * @param  array $otpData
-     * @return ModelGotOtp | bool Object if success or false if unsuccessful
-     */
-    public function createOrUpdateOtp($otpData)
-    {
-        return ModelGotOtp::updateOrCreate(
-            [
-                'model_id' => $otpData['model_id'], 
-                'model_type' => $otpData['model_type']],
-            [
+        if ($updateRow == true) {
+            $result = ModelGotOtp::updateOrCreate(
+                [
+                    'model_id' => $otpData['model_id'], 
+                    'model_type' => $otpData['model_type']],
+                [
+                    'otp_code' => $otpData['otp_code'],
+                    'otp_was_validated' => null,
+                ]
+            );
+        } else {
+            $result = ModelGotOtp::create([
+                'model_id' => $otpData['model_id'],
+                'model_type' => $otpData['model_type'],
                 'otp_code' => $otpData['otp_code'],
-                'otp_was_validated' => null,
-            ]
-        );
+            ]);
+        }
+
+        return $result;
     }
     
     /**
