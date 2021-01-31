@@ -41,8 +41,6 @@ class ModelGotOtp extends Model
                 'model_id' => $otpData['model_id'], 
                 'model_type' => $otpData['model_type']],
             [
-                'model_id' => $otpData['model_id'],
-                'model_type' => $otpData['model_type'],
                 'otp_code' => $otpData['otp_code'],
                 'otp_was_validated' => null,
             ]
