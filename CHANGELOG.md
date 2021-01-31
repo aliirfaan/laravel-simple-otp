@@ -1,25 +1,26 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
-## Sample formatting
+The format is based on [Keep a Changelog](https://keepachangelog.com) and this project adheres to [Semantic Versioning](https://semver.org).
 
-## [Unreleased]
+## Unreleased - TBD
+
 ### Added
-- Unreleased addition
-- Unreleased addition
+
+- Added a createOrUpdateOtp function in ModelGotOtp model so that row is updated if it exists. Helps in reducing database size and housekeeping tasks in having to delete old rows.
 
 ### Changed
-- Unreleased change
-- Unreleased change
 
-## YYYY-MM-DD
-### Added
-- Addition description
-- Addition description
+- Updated changelog format
 
-### Changed
-- change description
-- change description
+### Deprecated
 
-### Database
-- change description
+- Nothing
+
+### Removed
+
+- Nothing
+
+### Fixed
+
+- added App\ in class path in otp config to have full path. Example: App\Services\ExampleOtpProviderService::class
