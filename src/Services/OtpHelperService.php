@@ -18,6 +18,8 @@ class OtpHelperService
     /**
      * Generate a random OTP code based on length
      *
+     * If hash configuration is set to true, use framework hashing function to hash code, else return code as is
+     * 
      * @param  int $otpCodeLength The length of the OTP code to generate
      * @return string Random OTP code
      */
@@ -29,20 +31,8 @@ class OtpHelperService
         }
 
         $randomNumber = strval(rand(100000000, 999999999));
-        return substr($randomNumber, 0, $otpCodeLength);
-    }
-    
-    /**
-     * Use framework hashing function to hash code
-     *
-     * Reads configuration value
-     * If configuration is set to true, hash code, else return code as is
-     *
-     * @param  string $otpCode The OTP code to hash
-     * @return string Hashed OTP code or original OTP code
-     */
-    public function hashOtpCode($otpCode)
-    {
+        $otpCode = substr($randomNumber, 0, $otpCodeLength);
+
         if (config('otp.otp_should_encode', false)) {
             $otpCode = Hash::make($otpCode);
         }
@@ -114,41 +104,5 @@ class OtpHelperService
         }
 
         return true;
-    }
-    
-    /**
-     * Send OTP code to a phone number using configured communication service
-     *
-     * @param  string $phoneNumber Recipient phone number
-     * @param string $message : Message to send
-     * @return bool Whether successfully sent or not
-     */
-    public function sendOtp($phoneNumber, $message)
-    {
-        $otpCommunicationService = $this->getOtpCommunicationService();
-        if ($otpCommunicationService) {
-            return $otpCommunicationService->sendSms($phoneNumber, $message);
-        }
-
-        return false;
-    }
-    
-    /**
-     * Get configured communication service to send OTP code
-     *
-     * Read configuration and load communication service class
-     *
-     * @return Object Object of class that implements OtpCommunicationServiceInterface
-     */
-    private function getOtpCommunicationService()
-    {
-        $availableServices = config('otp.otp_communication_services', []);
-        $defautltService = config('otp.otp_default_communication_service', null);
-
-        if (isset($availableServices[$defautltService]) && isset($availableServices[$defautltService]['class']) && class_exists($availableServices[$defautltService]['class'])) {
-            return new $availableServices[$defautltService]['class']();
-        }
-        
-        return null;
     }
 }
