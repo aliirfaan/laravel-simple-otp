@@ -240,8 +240,13 @@ class TestController extends Controller
             'otp_code' => $hashedOtpCode
         ];
 
-        // create otp
+        /**
+         * create otp 
+         * use createOtp to add a row for each otp sent
+         * use createOrUpdateOtp to update if row exists
+         */
         $createOtp = $this->otpModel->createOtp($otpData);
+        //$createOtp = $this->otpModel->createOrUpdateOtp($otpData);
 
         // send otp
         $message = 'Your OTP is: '. $otpCode;
