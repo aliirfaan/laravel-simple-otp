@@ -23,4 +23,4 @@ The format is based on [Keep a Changelog](https://keepachangelog.com) and this p
 
 ### Fixed
 
-- updated App\ in class path in otp config to have full path. Example: App\Services\ExampleOtpProviderService::class
+- added App\ in class path in otp config to have full path. Example: App\Services\ExampleOtpProviderService::class
