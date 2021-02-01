@@ -1,6 +1,6 @@
 {
     "name": "aliirfaan/laravel-simple-otp",
-    "description": "Send and verify OTP using SMS in Laravel",
+    "description": "Generate and verify OTP in Laravel",
     "license": "MIT",
     "keywords": ["Laravel", "OTP", "One time password", "SMS"],
     "authors": [
