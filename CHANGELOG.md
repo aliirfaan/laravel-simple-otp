@@ -3,7 +3,33 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com) and this project adheres to [Semantic Versioning](https://semver.org).
 
+## 2.0.1 - 2021-02-01
+
+### Added
+
+- Nothing
+
+### Changed
+
+- Nothing
+
+### Deprecated
+
+- Nothing
+
+### Removed
+
+- Nothing
+
+### Fixed
+
+- Composer package description
+
 ## 2.0.0 - 2021-01-31
+
+### Added
+
+- Nothing
 
 ### Changed
 
@@ -22,6 +48,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com) and this p
 - createOrUpdateOtp() function
 - send otp functionality as it was tied to sms. We can use a different package to send otp via any channel like sms, email, etc..
 - config related to send otp communication class
+
+### Fixed
+
+- Nothing
 
 ## 1.1.0 - 2021-01-31
 
