@@ -2,7 +2,7 @@
     "name": "aliirfaan/laravel-simple-otp",
     "description": "Generate and verify OTP in Laravel",
     "license": "MIT",
-    "keywords": ["Laravel", "OTP", "One time password", "SMS"],
+    "keywords": ["Laravel", "OTP", "One time password"],
     "authors": [
         {
             "name": "aliirfaan",

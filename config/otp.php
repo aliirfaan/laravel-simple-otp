@@ -26,8 +26,8 @@ return [
     |
     */
 
-    'otp_does_expire' => true,
-    'otp_timeout_seconds' => 180,
-    'otp_digit_length' => 6,
-    'otp_should_encode' => false
+    'otp_does_expire' => env('OTP_DOES_EXPIRE', true),
+    'otp_timeout_seconds' => env('OTP_TIMEOUT_SECONDS', 180),
+    'otp_digit_length' => env('OTP_DIGIT_LENGTH', 6),
+    'otp_should_encode' => env('OTP_SHOULD_ENCODE', false)
 ];
