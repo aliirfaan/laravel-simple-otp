@@ -21,7 +21,7 @@ class OtpHelperService
      * If hash configuration is set to true, use framework hashing function to hash code, else return code as is
      * 
      * @param  int $otpCodeLength The length of the OTP code to generate
-     * @return string Random OTP code
+     * @return array Random OTP code and hashed otp
      */
     public function generateOtpCode(int $otpCodeLength = null)
     {
@@ -32,12 +32,13 @@ class OtpHelperService
 
         $randomNumber = strval(rand(100000000, 999999999));
         $otpCode = substr($randomNumber, 0, $otpCodeLength);
+        $otpHash = $otpCode;
 
         if (config('otp.otp_should_encode', false)) {
-            $otpCode = Hash::make($otpCode);
+            $otpHash = Hash::make($otpCode);
         }
 
-        return $otpCode;
+        return ['otp_code' => $otpCode, 'otp_hash' => $otpHash];
     }
     
     /**
