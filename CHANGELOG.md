@@ -3,6 +3,28 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com) and this project adheres to [Semantic Versioning](https://semver.org).
 
+## 4.0.1 - 2021-07-28
+
+### Added
+
+- Mass assignment for column otp_generated_at
+
+### Changed
+
+- createOtp($otpData, $updateRow = true)
+
+### Deprecated
+
+- Nothing
+
+### Removed
+
+- Nothing
+
+### Fixed
+
+- Nothing
+
 ## 4.0.0 - 2021-07-28
 
 ### Added
