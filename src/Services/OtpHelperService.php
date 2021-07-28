@@ -100,7 +100,7 @@ class OtpHelperService
             throw new NotFoundException('OTP was not found');
         } elseif ($this->otpCodeDidMatch($otpCode, $otpObj->otp_code) == false) {
             throw new NotMatchException('OTP did not match');
-        } elseif ($this->otpCodeDidExpire($otpObj->created_at) == true) {
+        } elseif ($this->otpCodeDidExpire($otpObj->otp_generated_at) == true) {
             throw new ExpiredException('Expired OTP');
         }
 

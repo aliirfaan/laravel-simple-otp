@@ -3,6 +3,7 @@
 namespace aliirfaan\LaravelSimpleOtp\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use \Carbon\Carbon;
 
 /**
  * OTP model
@@ -30,6 +31,7 @@ class ModelGotOtp extends Model
                 [
                     'otp_code' => $otpData['otp_code'],
                     'otp_was_validated' => null,
+                    'otp_generated_at' => Carbon::now()
                 ]
             );
         } else {
@@ -37,6 +39,7 @@ class ModelGotOtp extends Model
                 'model_id' => $otpData['model_id'],
                 'model_type' => $otpData['model_type'],
                 'otp_code' => $otpData['otp_code'],
+                'otp_generated_at' => Carbon::now()
             ]);
         }
 
@@ -60,7 +63,7 @@ class ModelGotOtp extends Model
             $query->where('otp_was_validated', '!=', 1)
             ->orWhereNull('otp_was_validated');
         })
-        ->orderBy('created_at', 'desc')
+        ->orderBy('otp_generated_at', 'desc')
         ->first();
     }
     
