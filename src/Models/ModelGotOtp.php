@@ -10,7 +10,7 @@ use \Carbon\Carbon;
  */
 class ModelGotOtp extends Model
 {
-    protected $fillable = ['model_id', 'model_type', 'otp_code', 'otp_was_validated'];
+    protected $fillable = ['model_id', 'model_type', 'otp_code', 'otp_was_validated', 'otp_generated_at'];
     
     /**
      * Add an OTP row to table
@@ -31,7 +31,7 @@ class ModelGotOtp extends Model
                 [
                     'otp_code' => $otpData['otp_code'],
                     'otp_was_validated' => null,
-                    'otp_generated_at' => Carbon::now()
+                    'otp_generated_at' => Carbon::now()->toDateTimeString()
                 ]
             );
         } else {
@@ -39,7 +39,7 @@ class ModelGotOtp extends Model
                 'model_id' => $otpData['model_id'],
                 'model_type' => $otpData['model_type'],
                 'otp_code' => $otpData['otp_code'],
-                'otp_generated_at' => Carbon::now()
+                'otp_generated_at' => Carbon::now()->toDateTimeString()
             ]);
         }
 
