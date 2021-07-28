@@ -3,6 +3,29 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com) and this project adheres to [Semantic Versioning](https://semver.org).
 
+## 4.0.0 - 2021-07-28
+
+### Added
+
+- New column otp_generated_at
+
+### Changed
+
+- createOtp($otpData, $updateRow = true) value for otp_generated_at column in Model ModelGotOtp
+- otpCodeIsValid($otpObj, $otpCode) use otp_generated_at to check for expiry instead of created_at
+
+### Deprecated
+
+- Nothing
+
+### Removed
+
+- Nothing
+
+### Fixed
+
+- Nothing
+
 ## 3.0.0 - 2021-02-19
 
 ### Added
