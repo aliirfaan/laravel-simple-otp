@@ -89,6 +89,20 @@ Uses framework hashing to hash OTP. See security > hashing in Laravel docs
 'otp_should_encode' => false
 ```
 
+otp_should_simulate | Bool (true or false)
+Whether to simulate otp code generation
+
+```php
+'otp_should_simulate' => false
+```
+
+otp_simulate_fillable_digit | Numeric
+What digits to use to generate OTP if simulation is enabled. The OTP generated will be generated with the fillable digit. Example: 1111
+
+```php
+'otp_simulate_fillable_digit' => 1
+```
+
 ## Usage
 
 ```php
