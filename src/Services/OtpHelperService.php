@@ -19,6 +19,7 @@ class OtpHelperService
      * Generate a random OTP code based on length
      *
      * If hash configuration is set to true, use framework hashing function to hash code, else return code as is
+     * If OTP simulation is enabled, generate OTP code with repeated fillable digit. If otp length is 6 and fillable digit is 1, generated code will be 111111 
      * 
      * @param  int $otpCodeLength The length of the OTP code to generate
      * @return array Random OTP code and hashed otp
@@ -30,10 +31,18 @@ class OtpHelperService
             $otpCodeLength = config('otp.otp_digit_length', 6);
         }
 
-        $randomNumber = strval(rand(100000000, 999999999));
-        $otpCode = substr($randomNumber, 0, $otpCodeLength);
-        $otpHash = $otpCode;
+        $otpCode = null;
 
+        $shouldSimulateOtpCode = config('otp.otp_should_simulate');
+        if($shouldSimulateOtpCode == true) {
+            $fillableDigit = config('otp.otp_simulate_fillable_digit');
+            $otpCode = str_repeat($fillableDigit, $otpCodeLength);
+        } else {
+            $randomNumber = strval(rand(100000000, 999999999));
+            $otpCode = substr($randomNumber, 0, $otpCodeLength);
+        }
+
+        $otpHash = $otpCode;
         if (config('otp.otp_should_encode', false)) {
             $otpHash = Hash::make($otpCode);
         }

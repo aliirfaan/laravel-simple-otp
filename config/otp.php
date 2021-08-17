@@ -23,11 +23,18 @@ return [
     | otp_should_encode | Bool (true or false)
     | Whether to hash the OTP before saving in the database
     | Uses framework hashing to hash OTP. See security > hashing in Laravel docs
+    | 
+    | otp_should_simulate | Bool (true or false)
+    | Whether to simulate otp code generation
     |
+    | otp_simulate_fillable_digit | Numeric
+    | What digits to use to generate OTP if simulation is enabled. The OTP generated will be generated with the fillable digit. Example: 1111
     */
 
     'otp_does_expire' => env('OTP_DOES_EXPIRE', true),
     'otp_timeout_seconds' => env('OTP_TIMEOUT_SECONDS', 180),
     'otp_digit_length' => env('OTP_DIGIT_LENGTH', 6),
-    'otp_should_encode' => env('OTP_SHOULD_ENCODE', false)
+    'otp_should_encode' => env('OTP_SHOULD_ENCODE', false),
+    'otp_should_simulate' => env('OTP_SHOULD_SIMULATE', false),
+    'otp_simulate_fillable_digit' => env('OTP_SIMULATE_FILLABLE_DIGIT', 1)
 ];
