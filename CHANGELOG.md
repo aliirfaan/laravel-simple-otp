@@ -3,6 +3,28 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com) and this project adheres to [Semantic Versioning](https://semver.org).
 
+## 4.2.0 - 2022-01-10
+
+### Added
+
+- Nothing
+
+### Changed
+
+- migration file added index to column otp_generated_at, otp_was_validated
+
+### Deprecated
+
+- Nothing
+
+### Removed
+
+- Nothing
+
+### Fixed
+
+- Nothing
+
 ## 4.1.0 - 2021-08-17
 
 ### Added
