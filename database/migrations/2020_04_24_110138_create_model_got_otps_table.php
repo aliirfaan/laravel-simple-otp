@@ -18,8 +18,8 @@ class CreateModelGotOtpsTable extends Migration
             $table->string('model_id')->index('model_id_index');
             $table->string('model_type')->index('model_type_index');
             $table->string('otp_code');
-            $table->dateTime('otp_generated_at', $precision = 0);
-            $table->boolean('otp_was_validated')->nullable();
+            $table->dateTime('otp_generated_at', $precision = 0)->index('generated_at_index');
+            $table->boolean('otp_was_validated')->nullable()->index('was_validated_index');
             $table->timestamps();
         });
     }
