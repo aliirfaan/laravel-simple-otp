@@ -3,6 +3,28 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com) and this project adheres to [Semantic Versioning](https://semver.org).
 
+## 4.3.0 - 2022-03-11
+
+### Added
+
+- Events OtpExpired, OtpNotFound, OtpNotMatched
+
+### Changed
+
+- Nothing
+
+### Deprecated
+
+- Nothing
+
+### Removed
+
+- Nothing
+
+### Fixed
+
+- Nothing
+
 ## 4.2.0 - 2022-01-10
 
 ### Added

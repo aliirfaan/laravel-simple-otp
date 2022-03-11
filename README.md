@@ -13,6 +13,7 @@ This package is not tied to Laravel Auth and you can use it to send OTP to any m
 * Hash OTP code for better security
 * Validate OTP code based on presence, equality and expiry
 * Throws custom exceptions
+* Events for OTP expired, OTP not found, OTP not matched
 
 ## Requirements
 
