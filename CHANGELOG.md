@@ -3,6 +3,29 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com) and this project adheres to [Semantic Versioning](https://semver.org).
 
+## 5.0.0 - 2022-07-120
+
+### Added
+
+- Nothing
+
+### Changed
+
+- otp_intent field to know why the otp was sent in the first place
+- ModelGotOtp model to use new otp_intent field
+
+### Deprecated
+
+- Nothing
+
+### Removed
+
+- Nothing
+
+### Fixed
+
+- Nothing
+
 ## 4.3.0 - 2022-03-11
 
 ### Added

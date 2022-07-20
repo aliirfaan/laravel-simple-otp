@@ -10,7 +10,7 @@ use \Carbon\Carbon;
  */
 class ModelGotOtp extends Model
 {
-    protected $fillable = ['model_id', 'model_type', 'otp_code', 'otp_was_validated', 'otp_generated_at'];
+    protected $fillable = ['model_id', 'model_type', 'otp_intent', 'otp_code', 'otp_was_validated', 'otp_generated_at'];
     
     /**
      * Add an OTP row to table
@@ -29,6 +29,7 @@ class ModelGotOtp extends Model
                     'model_id' => $otpData['model_id'], 
                     'model_type' => $otpData['model_type']],
                 [
+                    'otp_intent' => $otpData['otp_intent'],
                     'otp_code' => $otpData['otp_code'],
                     'otp_was_validated' => null,
                     'otp_generated_at' => Carbon::now()->toDateTimeString()
@@ -38,6 +39,7 @@ class ModelGotOtp extends Model
             $result = ModelGotOtp::create([
                 'model_id' => $otpData['model_id'],
                 'model_type' => $otpData['model_type'],
+                'otp_intent' => $otpData['otp_intent'],
                 'otp_code' => $otpData['otp_code'],
                 'otp_generated_at' => Carbon::now()->toDateTimeString()
             ]);
@@ -51,14 +53,17 @@ class ModelGotOtp extends Model
      *
      * @param  int $modelId key of model
      * @param  string $modelType name of model
+     * @param  string $otpIntent why was the OTP sent - a model maybe sent multiple OTPs
      * @return  ModelGotOtp | null Object if success or null
      */
-    public function getOtp($modelId, $modelType)
+    public function getOtp($modelId, $modelType, $otpIntent = null)
     {
         return ModelGotOtp::where(function ($query) use ($modelId) {
             $query->where('model_id', '=', $modelId);
         })->where(function ($query) use ($modelType) {
             $query->where('model_type', '=', $modelType);
+        })->where(function ($query) use ($otpIntent) {
+            $query->where('otp_intent', '=', $otpIntent);
         })->where(function ($query) {
             $query->where('otp_was_validated', '!=', 1)
             ->orWhereNull('otp_was_validated');

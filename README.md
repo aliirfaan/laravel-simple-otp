@@ -150,6 +150,7 @@ class TestController extends Controller
         $otpData = [
             'model_id' => $modelId,
             'model_type' => $modelType,
+            'otp_intent' => 'OTP_LOGIN',
             'otp_code' => $otpCode['otp_hash']
         ];
 
@@ -174,10 +175,11 @@ class TestController extends Controller
         // normally you will get this via $request
         $modelId = 1;
         $modelType = 'exampleModel';
+        $otpIntent = 'OTP_LOGIN',
         $otpCode = '123456';
 
         // get otp
-        $otpObj = $this->otpModel->getOtp($modelId, $modelType);
+        $otpObj = $this->otpModel->getOtp($modelId, $modelType, $otpIntent);
 
         // verify otp
         try {
