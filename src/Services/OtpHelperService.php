@@ -115,4 +115,20 @@ class OtpHelperService
 
         return true;
     }
+    
+    /**
+     * Get expiry date of otp code
+     *
+     * @param  ModelGotOtp $otpObj OTP model object
+     *
+     * @return string|null
+     */
+    public function getOtpCodeExpiryDate($otpObj)
+    {
+        if (config('otp.otp_does_expire', false)) {
+            return Carbon::parse($otpObj->otp_generated_at)->addSeconds(config('otp.otp_timeout_seconds'));
+        }
+
+        return null;
+    }
 }
