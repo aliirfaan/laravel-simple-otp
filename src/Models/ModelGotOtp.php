@@ -26,7 +26,7 @@ class ModelGotOtp extends Model
         if ($updateRow == true) {
             $result = ModelGotOtp::updateOrCreate(
                 [
-                    'model_id' => $otpData['model_id'], 
+                    'model_id' => $otpData['model_id'],
                     'model_type' => $otpData['model_type']],
                 [
                     'otp_intent' => $otpData['otp_intent'],

@@ -62,7 +62,7 @@ class OtpHelperService
     public function otpCodeDidExpire($createdAt)
     {
         if (config('otp.otp_does_expire', false)) {
-            return $createdAt < Carbon::now()->subSeconds(config('otp.otp_timeout_seconds'));
+            return $createdAt < Carbon::now()->subSeconds(intval(config('otp.otp_timeout_seconds')));
         }
 
         return false;
@@ -127,7 +127,7 @@ class OtpHelperService
     public function getOtpCodeExpiryDate($otpObj, $format = 'Y-m-d H:i:s')
     {
         if (config('otp.otp_does_expire', false)) {
-            return (Carbon::parse($otpObj->otp_generated_at)->addSeconds(config('otp.otp_timeout_seconds')))->format($format);
+            return (Carbon::parse($otpObj->otp_generated_at)->addSeconds(intval(config('otp.otp_timeout_seconds'))))->format($format);
         }
 
         return null;
