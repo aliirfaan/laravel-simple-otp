@@ -28,7 +28,7 @@ class SimpleOtpServiceProvider extends \Illuminate\Support\ServiceProvider
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
 
         $this->publishes([
-            __DIR__.'/../config/otp.php' => config_path('otp.php'),
+            __DIR__.'/../config/laravel-simple-otp.php' => config_path('laravel-simple-otp.php'),
         ]);
     }
 }

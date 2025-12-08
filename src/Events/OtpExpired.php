@@ -38,20 +38,20 @@ class OtpExpired
     /**
      * Otp model
      *
-     * @var aliirfaan\LaravelSimpleOtp\Models\ModelGotOtp|null
+     * @var aliirfaan\LaravelSimpleOtp\Models\SimpleOtp|null
      */
     public $otpObj;
 
     /**
      * Create a new event instance.
      * 
-     * @param  array  $credentials
+     * @param  array|null  $credentials
      * @param  \Illuminate\Contracts\Auth\Authenticatable|null $user
-     * @param  aliirfaan\LaravelSimpleOtp\Models\ModelGotOtp|null $otpObj
+     * @param  aliirfaan\LaravelSimpleOtp\Models\SimpleOtp|null $otpObj
      * @param  string  $name
      * @return void
      */
-    public function __construct($credentials, $user = null, $otpObj = null, $name = 'otp.expired')
+    public function __construct($credentials = null, $user = null, $otpObj = null, $name = 'otp.expired')
     {
         $this->user = $user;
         $this->credentials = $credentials;

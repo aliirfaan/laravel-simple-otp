@@ -1,8 +1,8 @@
 {
     "name": "aliirfaan/laravel-simple-otp",
-    "description": "Generate and verify OTP in Laravel",
+    "description": "Generate and verify OTP in Laravel for any model type and intent",
     "license": "MIT",
-    "keywords": ["Laravel", "OTP", "One time password"],
+    "keywords": ["Laravel", "OTP", "One time password", "Model", "Intent"],
     "authors": [
         {
             "name": "aliirfaan",
@@ -20,5 +20,8 @@
                 "aliirfaan\\LaravelSimpleOtp\\SimpleOtpServiceProvider"
             ]
         }
+    },
+    "require": {
+        "php": ">=8.0.0"
     }
 }

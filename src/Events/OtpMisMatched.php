@@ -10,7 +10,7 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
-class OtpNotMatched
+class OtpMisMatched
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
@@ -38,20 +38,20 @@ class OtpNotMatched
     /**
      * Otp model
      *
-     * @var aliirfaan\LaravelSimpleOtp\Models\ModelGotOtp|null
+     * @var aliirfaan\LaravelSimpleOtp\Models\SimpleOtp|null
      */
     public $otpObj;
 
     /**
      * Create a new event instance.
      * 
-     * @param  array  $credentials
+     * @param  array|null  $credentials
      * @param  \Illuminate\Contracts\Auth\Authenticatable|null $user
-     * @param  aliirfaan\LaravelSimpleOtp\Models\ModelGotOtp|null $otpObj
+     * @param  aliirfaan\LaravelSimpleOtp\Models\SimpleOtp|null $otpObj
      * @param  string  $name
      * @return void
      */
-    public function __construct($credentials, $user = null, $otpObj = null, $name = 'otp.not_match')
+    public function __construct($credentials = null, $user = null, $otpObj = null, $name = 'otp.mis_match')
     {
         $this->user = $user;
         $this->credentials = $credentials;

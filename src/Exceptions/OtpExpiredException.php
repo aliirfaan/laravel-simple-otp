@@ -2,7 +2,7 @@
 
 namespace aliirfaan\LaravelSimpleOtp\Exceptions;
 
-class ExpiredException extends \UnexpectedValueException
+class OtpExpiredException extends \UnexpectedValueException
 {
     //
 }

@@ -2,7 +2,7 @@
 
 namespace aliirfaan\LaravelSimpleOtp\Exceptions;
 
-class NotFoundException extends \UnexpectedValueException
+class OtpNotFoundException extends \UnexpectedValueException
 {
     //
 }
