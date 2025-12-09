@@ -5,14 +5,32 @@ The format is based on [Keep a Changelog](https://keepachangelog.com) and this p
 
 # 6.0.0 - xxxx-xx-xx
 
-REmoved otp_does_expire, now always expires
-removed should encode, now always encodes
-REvmoed fillable digit, now has a simulated OTP code, more 
-Rename model to lso_otps
-added device_id for otp per device
-Added otp_meta
-Added correlation_id
-otp_type: numeric, alpha numeric
+### Added
+
+- Added device_id for otp per device
+- Added otp_meta for meta data
+- Added correlation_id for auditing
+- Added otp_type config to support: numeric, alphanumeric
+
+### Changed
+
+- Renamed model to SimpleOtp
+- Renamed table to lso_otps
+
+### Deprecated
+
+- Nothing
+
+### Removed
+
+- Removed otp_does_expire config, now always expires
+- Removed should  config, now always encodes
+- Removed fillable digit, now has a simulated OTP code for more security
+- Removed events
+
+### Fixed
+
+- Nothing
 
 ## 5.2.2 - 2025-10-17
 

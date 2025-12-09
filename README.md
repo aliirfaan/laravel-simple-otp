@@ -9,11 +9,11 @@ This package is not tied to Laravel Auth and you can use it to send OTP to any m
 ## Features
 
 * Generate random OTP based on length
+* Generate random OTP based on type (Numeric, alphanumeric)
 * Associate OTP code with a model object using the object id and object type
-* Hash OTP code for better security
+* OTP code is hashed for better security
 * Validate OTP code based on presence, equality and expiry
 * Throws custom exceptions
-* Events for OTP expired, OTP not found, OTP not matched
 
 ## Requirements
 
@@ -44,12 +44,12 @@ Note: use the following for Laravel <5.1 versions:
 Publish files with:
 
 ```bash
- $ php artisan vendor:publish --provider="aliirfaan\LaravelSimpleOtp\SimpleOtpServiceProvider"
+ $ php artisan vendor:publish --tag=laravel-simple-otp-config"
 ```
 
 or by using only `php artisan vendor:publish` and select the `aliirfaan\LaravelSimpleOtp\SimpleOtpServiceProvider` from the outputted list.
 
-Apply the migrations for the `ModelGotOtps` table:
+Apply the migrations:
 
 ```bash
  $ php artisan migrate
@@ -57,51 +57,14 @@ Apply the migrations for the `ModelGotOtps` table:
 
 ## Configuration
 
-This package publishes an `otp.php` file inside your applications's `config` folder which contains the settings for this package. Most of the variables are bound to environment variables, but you are free to directly edit this file, or add the configuration keys to the `.env` file.
-
-otp_does_expire | Bool (true or false)  
-Whether the OTP code will expire    
-If true, the number of seconds specified in otp_timeout_seconds is used to get expiry date
+This package publishes an `laravel-simple-otp` file inside your applications's `config` folder which contains the settings for this package. Most of the variables are bound to environment variables, but you are free to directly edit this file, or add the configuration keys to the `.env` file.
 
 ```php
-'otp_does_expire' => true
-```
-
-otp_timeout_seconds | Numeric  
-Number of seconds after which the OTP expires  
-Taken into consideration only if otp_does_expire is set to true
-
-```php
-'otp_timeout_seconds' => 180
-```
-
-otp_digit_length | Numeric  
-The number of digits that the OTP will have
-
-```php
-'otp_digit_length' => 6
-```
-
-otp_should_encode | Bool (true or false)  
-Whether to hash the OTP before saving in the database  
-Uses framework hashing to hash OTP. See security > hashing in Laravel docs
-
-```php
-'otp_should_encode' => false
-```
-
-otp_should_simulate | Bool (true or false)
-Whether to simulate otp code generation
-
-```php
-'otp_should_simulate' => false
-```
-
-otp_simulate_fillable_digit | Numeric
-What digits to use to generate OTP if simulation is enabled. The OTP generated will be generated with the fillable digit. Example: 1111
-
-```php
-'otp_simulate_fillable_digit' => 1
+    'otp_type' => env('OTP_TYPE', 'numeric'),
+    'otp_timeout_seconds' => env('OTP_TIMEOUT_SECONDS', 180),
+    'otp_length' => env('OTP_LENGTH', 6),
+    'otp_should_simulate' => env('OTP_SHOULD_SIMULATE', false),
+    'otp_simulated_code' => env('OTP_SIMULATED_CODE'),
 ```
 
 ## Usage
@@ -112,7 +75,7 @@ What digits to use to generate OTP if simulation is enabled. The OTP generated w
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use aliirfaan\LaravelSimpleOtp\Models\ModelGotOtp; // otp model
+use aliirfaan\LaravelSimpleOtp\Models\SimpleOtp; // otp model
 use aliirfaan\LaravelSimpleOtp\Services\OtpHelperService; // otp helper service
 use aliirfaan\LaravelSimpleOtp\Exceptions\ExpiredException;
 use aliirfaan\LaravelSimpleOtp\Exceptions\NotFoundException;
@@ -125,7 +88,7 @@ class TestController extends Controller
     /**
      * Load model in constructor using dependency injection
      */
-    public function __construct(ModelGotOtp $otpModel)
+    public function __construct(SimpleOtp $otpModel)
     {
         $this->otpModel = $otpModel;
     }
@@ -148,10 +111,9 @@ class TestController extends Controller
         $phoneNumber = $yourExampleModelObj->phone;
 
         $otpData = [
-            'model_id' => $modelId,
-            'model_type' => $modelType,
+            'actor_id' => $modelId,
+            'actor_type' => $modelType,
             'otp_intent' => 'OTP_LOGIN',
-            'otp_code' => $otpCode['otp_hash']
         ];
 
         /**
@@ -159,10 +121,10 @@ class TestController extends Controller
          * use createOtp($otpData, false) to add a row for each otp sent
          * use createOtp($otpData) to update if row exists
          */
-        $createOtp = $this->otpModel->createOtp($otpData);
+        $createOtp = $this->otpModel->persistOtpCode($otpCode, $otpData);
 
         // send otp using your own code
-        $message = 'Your OTP is: '. $otpCode['otp_code'];
+        $message = 'Your OTP is: '. $otpCode;
         
     }
 
@@ -171,21 +133,23 @@ class TestController extends Controller
      */
     public function test_verify_otp(Request $request, OtpHelperService $otpHelperService)
     {
-        
         // normally you will get this via $request
         $modelId = 1;
         $modelType = 'exampleModel';
         $otpIntent = 'OTP_LOGIN',
         $otpCode = '123456';
 
-        // get otp
-        $otpObj = $this->otpModel->getOtp($modelId, $modelType, $otpIntent);
+        $validateOtpData = [
+            'actor_id' => $modelId,
+            'actor_type' => $modelType,
+            'otp_intent' => $otpIntent,
+            'device_id' => null,
+            'otp_code' => $otpCode,
+        ];
 
         // verify otp
         try {
-            $otpCodeIsValid = $otpHelperService->otpCodeIsValid($otpObj, $otpCode);
-            // update otp validated flag
-            $updateOtp = $this->otpModel->updateOtp($otpObj->id);
+            $otpCodeIsValid = $otpHelperService->validateOtpCode($validateOtpData);
         } catch (\aliirfaan\LaravelSimpleOtp\Exceptions\NotFoundException $e) {
             //
         } catch (\aliirfaan\LaravelSimpleOtp\Exceptions\NotMatchException $e) {

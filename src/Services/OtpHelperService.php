@@ -3,7 +3,7 @@
 namespace aliirfaan\LaravelSimpleOtp\Services;
 
 use Illuminate\Support\Facades\Hash;
-use \Carbon\Carbon;
+use Carbon\Carbon;
 use aliirfaan\LaravelSimpleOtp\Exceptions\OtpExpiredException;
 use aliirfaan\LaravelSimpleOtp\Exceptions\OtpNotFoundException;
 use aliirfaan\LaravelSimpleOtp\Exceptions\OtpMismatchException;
@@ -35,6 +35,18 @@ class OtpHelperService
      * Character set for alphanumeric OTPs (excludes 0, O, o for readability).
      */
     private const ALPHANUMERIC_CHARSET = 'ABCDEFGHJKLMNPQRSTUVWXYZ123456789';
+
+    /**
+     * otpModel
+     *
+     * @var SimpleOtp
+     */
+    private $otpModel;
+
+    public function __construct(?SimpleOtp $otpModel = null)
+    {
+        $this->otpModel = $otpModel ?? new SimpleOtp();
+    }
 
     /**
      * Generate a cryptographically secure OTP code.
@@ -151,6 +163,66 @@ class OtpHelperService
     }
 
     /**
+     * Validate a submitted OTP code for an actor/intent flow.
+     *
+     * Verification flow:
+     * 1. Look up latest OTP for actor/intent/device
+     * 2. check if OTP is expired
+     * 3. check if OTP is verified
+     * 4. Verify the submitted code against the stored hash
+     * 5. Mark OTP as verified on success
+     *
+     * @param  array $validateData {
+     *     @type string $actor_id    Actor identifier (required)
+     *     @type string $actor_type  Actor type (required)
+     *     @type string $otp_intent  OTP intent/purpose (required)
+     *     @type string $device_id   Device identifier (optional)
+     *     @type string $otp_code    Submitted OTP code to validate (required)
+     * }
+     * @return bool
+     *
+     * @throws OtpNotFoundException  If no OTP exists for the given criteria
+     * @throws OtpExpiredException   If the OTP exists but has expired
+     * @throws OtpMismatchException  If the submitted code does not match
+     */
+    public function validateOtpCode(array $validateData): bool
+    {
+        $actorId = $validateData['actor_id'] ?? null;
+        $actorType = $validateData['actor_type'] ?? null;
+        $otpIntent = $validateData['otp_intent'] ?? null;
+        $deviceId = $validateData['device_id'] ?? null;
+        $otpCode = $validateData['otp_code'] ?? null;
+
+        // Get latest OTP for actor/intent/device
+        $latestOtp = $this->otpModel->getLatestOtp($actorId, $actorType, $otpIntent, $deviceId);
+        $now = Carbon::now();
+
+        if ($latestOtp === null) {
+            throw new OtpNotFoundException('OTP not found');
+        }
+
+        // Check if already verified
+        if ($latestOtp->otp_verified_at !== null) {
+            throw new OtpNotFoundException('OTP not found');
+        }
+
+        // Check if expired
+        if ($latestOtp->otp_expired_at !== null && $latestOtp->otp_expired_at <= $now) {
+            throw new OtpExpiredException('OTP has expired');
+        }
+
+        // Verify submitted code against stored hash
+        if (!Hash::check($otpCode, $latestOtp->otp_code_hash)) {
+            throw new OtpMismatchException('OTP does not match');
+        }
+
+        // Mark as verified
+        $this->otpModel->markAsVerified($latestOtp->id);
+
+        return true;
+    }
+
+    /**
      * Persist OTP code in the database
      * 
      * Calculate otp_expired_at based on otp_timeout_seconds
@@ -164,27 +236,25 @@ class OtpHelperService
      */
     public function persistOtpCode(string $otpCode, array $otpData): array
     {
-        $actorId = $otpData['actor_id'] ?? null;
+        $actorId = $otpData['actor_id'];
         $actorType = $otpData['actor_type'] ?? null;
         $deviceId = $otpData['device_id'] ?? null;
         $otpIntent = $otpData['otp_intent'] ?? null;
         $correlationId = $otpData['correlation_id'] ?? null;
-        
         $otpMeta = $otpData['otp_meta'] ?? null;
-        $otpMeta = is_array($otpMeta) ? json_encode($otpMeta) : $otpMeta;
 
         $otpCodeHash = Hash::make($otpCode);
         $otpGeneratedAt = Carbon::now();
         $otpExpiredAt = $otpGeneratedAt->copy()->addSeconds((int) config('laravel-simple-otp.otp_timeout_seconds'));
 
-        $otp = SimpleOtp::create([
+        $otp = $this->otpModel->create([
             'actor_id' => $actorId,
             'actor_type' => $actorType,
             'device_id' => $deviceId,
             'otp_intent' => $otpIntent,
             'otp_code_hash' => $otpCodeHash,
-            'otp_generated_at' => $otpGeneratedAt->toDateTimeString(),
-            'otp_expired_at' => $otpExpiredAt->toDateTimeString(),
+            'otp_generated_at' => $otpGeneratedAt,
+            'otp_expired_at' => $otpExpiredAt,
             'correlation_id' => $correlationId,
             'otp_meta' => $otpMeta,
         ]);
@@ -194,88 +264,5 @@ class OtpHelperService
             'expired_at' => $otp->otp_expired_at,
             'otp_length' => strlen($otpCode),
         ];
-    }
-
-    
-
-
-
-    /**
-     * Verify if OTP code has expired based on created date and timeout seconds
-     *
-     * Reads configuration value
-     * If OTP expires is set to true then checks whether the code has expired
-     *
-     * @param  string $createdAt Date in Y-m-d H:i:s format
-     * @return bool Whether the OTP expired or not
-     */
-    public function otpCodeDidExpire($createdAt)
-    {
-        if (config('laravel-simple-otp.otp_does_expire', false)) {
-            return $createdAt < Carbon::now()->subSeconds(intval(config('laravel-simple-otp.otp_timeout_seconds')));
-        }
-
-        return false;
-    }
-    
-    /**
-     * Verify if OTP code matches with that stored in the database
-     *
-     * Reads configuration value
-     * If OTP was hashed, make a hash check else make an equality check
-     *
-     * @param  string $otpCodeToMatch OTP code submitted
-     * @param  string $originalOtpCode OTP code stores in the database
-     * @return boll Whether OTP code matches or not
-     */
-    public function otpCodeDidMatch($otpCodeToMatch, $originalOtpCode)
-    {
-        if (config('laravel-simple-otp.otp_should_encode', false)) {
-            return Hash::check($otpCodeToMatch, $originalOtpCode);
-        } else {
-            return $originalOtpCode == $otpCodeToMatch;
-        }
-
-        return false;
-    }
-    
-    /**
-     * Single function to validate OTP code by calling other validation methods
-     *
-     * Check if OTP code exists
-     * Check if OTP code matches
-     * Check if OTP code has expired
-     *
-     * @param  SimpleOtp $otpObj OTP model object
-     * @param  string $otpCode OTP code
-     * @return bool Whether valid or not
-     * @throws OtpNotFoundException If OTP code does not exist
-     * @throws OtpMismatchException If OTP code does not match
-     * @throws OtpExpiredException If OTP code has expired
-     */
-    public function otpCodeIsValid($otpObj, $otpCode)
-    {
-        if (is_null($otpObj)) {
-            throw new OtpNotFoundException('OTP was not found');
-        } elseif ($this->otpCodeDidMatch($otpCode, $otpObj->otp_code) == false) {
-            throw new OtpMismatchException('OTP did not match');
-        } elseif ($this->otpCodeDidExpire($otpObj->otp_generated_at) == true) {
-            throw new OtpExpiredException('Expired OTP');
-        }
-
-        return true;
-    }
-    
-    /**
-     * Get expiry date of otp code
-     *
-     * @param  SimpleOtp $otpObj OTP model object
-     * @param  string $format date time format
-     *
-     * @return string|null
-     */
-    public function getOtpCodeExpiryDate($otpObj, $format = 'Y-m-d H:i:s')
-    {
-        return (Carbon::parse($otpObj->otp_generated_at)->addSeconds(intval(config('laravel-simple-otp.otp_timeout_seconds'))))->format($format);
     }
 }

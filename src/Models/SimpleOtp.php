@@ -45,14 +45,13 @@ class SimpleOtp extends Model
      * 
      * @return  self|null Row if found or null if not found
      */
-    public function getActiveOtp(?string $actorId, ?string $actorType, ?string $otpIntent, ?string $deviceId): ?self
+    public function getLatestOtp(?string $actorId, ?string $actorType, ?string $otpIntent, ?string $deviceId): ?self
     {
         return $this->where('actor_id', $actorId)
             ->where('actor_type', $actorType)
             ->where('otp_intent', $otpIntent)
             ->where('device_id', $deviceId)
-            ->where('otp_expired_at', '>', Carbon::now())
-            ->whereNull('otp_verified_at')
+            ->orderByDesc('otp_generated_at')
             ->first();
     }
     
