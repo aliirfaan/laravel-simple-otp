@@ -14,6 +14,11 @@
             "aliirfaan\\LaravelSimpleOtp\\": "src/"
         }
     },
+    "autoload-dev": {
+        "psr-4": {
+            "aliirfaan\\LaravelSimpleOtp\\Tests\\": "tests/"
+        }
+    },
     "extra": {
         "laravel": {
             "providers": [
@@ -23,5 +28,12 @@
     },
     "require": {
         "php": ">=8.0.0"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^9.0",
+        "phpunit/phpunit": "^11.0"
+    },
+    "scripts": {
+        "test": "vendor/bin/phpunit"
     }
 }
