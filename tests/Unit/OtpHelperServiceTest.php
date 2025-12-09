@@ -11,6 +11,7 @@ use aliirfaan\LaravelSimpleOtp\Exceptions\OtpMismatchException;
 use Illuminate\Support\Facades\Hash;
 use Carbon\Carbon;
 use Mockery;
+use PHPUnit\Framework\Attributes\Test;
 
 class OtpHelperServiceTest extends TestCase
 {
@@ -34,7 +35,7 @@ class OtpHelperServiceTest extends TestCase
     |--------------------------------------------------------------------------
     */
 
-    /** @test */
+    #[Test]
     public function it_generates_otp_with_default_length(): void
     {
         config(['laravel-simple-otp.otp_length' => 6]);
@@ -44,7 +45,7 @@ class OtpHelperServiceTest extends TestCase
         $this->assertEquals(6, strlen($otp));
     }
 
-    /** @test */
+    #[Test]
     public function it_generates_otp_with_custom_length(): void
     {
         $otp = $this->service->generateOtpCode(8);
@@ -52,7 +53,7 @@ class OtpHelperServiceTest extends TestCase
         $this->assertEquals(8, strlen($otp));
     }
 
-    /** @test */
+    #[Test]
     public function it_generates_numeric_otp_without_zero(): void
     {
         config(['laravel-simple-otp.otp_type' => 'numeric']);
@@ -66,7 +67,7 @@ class OtpHelperServiceTest extends TestCase
         }
     }
 
-    /** @test */
+    #[Test]
     public function it_generates_alphanumeric_otp_without_ambiguous_chars(): void
     {
         config(['laravel-simple-otp.otp_type' => 'alphanumeric']);
@@ -81,7 +82,7 @@ class OtpHelperServiceTest extends TestCase
         }
     }
 
-    /** @test */
+    #[Test]
     public function it_returns_simulated_otp_when_simulation_enabled(): void
     {
         config([
@@ -94,7 +95,7 @@ class OtpHelperServiceTest extends TestCase
         $this->assertEquals('999999', $otp);
     }
 
-    /** @test */
+    #[Test]
     public function it_pads_simulated_otp_if_shorter_than_requested_length(): void
     {
         config([
@@ -108,7 +109,7 @@ class OtpHelperServiceTest extends TestCase
         $this->assertEquals(6, strlen($otp));
     }
 
-    /** @test */
+    #[Test]
     public function it_truncates_simulated_otp_if_longer_than_requested_length(): void
     {
         config([
@@ -121,7 +122,7 @@ class OtpHelperServiceTest extends TestCase
         $this->assertEquals('123456', $otp);
     }
 
-    /** @test */
+    #[Test]
     public function it_throws_exception_for_length_below_minimum(): void
     {
         $this->expectException(\InvalidArgumentException::class);
@@ -130,7 +131,7 @@ class OtpHelperServiceTest extends TestCase
         $this->service->generateOtpCode(3);
     }
 
-    /** @test */
+    #[Test]
     public function it_throws_exception_for_length_above_maximum(): void
     {
         $this->expectException(\InvalidArgumentException::class);
@@ -139,7 +140,7 @@ class OtpHelperServiceTest extends TestCase
         $this->service->generateOtpCode(13);
     }
 
-    /** @test */
+    #[Test]
     public function it_accepts_minimum_length(): void
     {
         $otp = $this->service->generateOtpCode(4);
@@ -147,7 +148,7 @@ class OtpHelperServiceTest extends TestCase
         $this->assertEquals(4, strlen($otp));
     }
 
-    /** @test */
+    #[Test]
     public function it_accepts_maximum_length(): void
     {
         $otp = $this->service->generateOtpCode(12);
@@ -161,7 +162,7 @@ class OtpHelperServiceTest extends TestCase
     |--------------------------------------------------------------------------
     */
 
-    /** @test */
+    #[Test]
     public function it_throws_not_found_exception_when_otp_does_not_exist(): void
     {
         $this->expectException(OtpNotFoundException::class);
@@ -176,7 +177,7 @@ class OtpHelperServiceTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function it_throws_not_found_exception_when_otp_already_verified(): void
     {
         // Create a verified OTP
@@ -202,7 +203,7 @@ class OtpHelperServiceTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function it_throws_expired_exception_when_otp_has_expired(): void
     {
         // Create an expired OTP
@@ -228,7 +229,7 @@ class OtpHelperServiceTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function it_throws_mismatch_exception_when_otp_code_is_wrong(): void
     {
         SimpleOtp::create([
@@ -253,7 +254,7 @@ class OtpHelperServiceTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function it_validates_otp_successfully(): void
     {
         SimpleOtp::create([
@@ -277,7 +278,7 @@ class OtpHelperServiceTest extends TestCase
         $this->assertTrue($result);
     }
 
-    /** @test */
+    #[Test]
     public function it_marks_otp_as_verified_after_successful_validation(): void
     {
         $otp = SimpleOtp::create([
@@ -310,7 +311,7 @@ class OtpHelperServiceTest extends TestCase
     |--------------------------------------------------------------------------
     */
 
-    /** @test */
+    #[Test]
     public function it_persists_otp_code_to_database(): void
     {
         config(['laravel-simple-otp.otp_timeout_seconds' => 180]);
@@ -335,7 +336,7 @@ class OtpHelperServiceTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function it_hashes_otp_code_before_storing(): void
     {
         $this->service->persistOtpCode('123456', [
@@ -349,7 +350,7 @@ class OtpHelperServiceTest extends TestCase
         $this->assertTrue(Hash::check('123456', $otp->otp_code_hash));
     }
 
-    /** @test */
+    #[Test]
     public function it_sets_correct_expiry_time(): void
     {
         Carbon::setTestNow(Carbon::parse('2025-01-01 12:00:00'));
@@ -368,7 +369,7 @@ class OtpHelperServiceTest extends TestCase
         Carbon::setTestNow(); // Reset
     }
 
-    /** @test */
+    #[Test]
     public function it_stores_optional_meta_data(): void
     {
         $this->service->persistOtpCode('123456', [
@@ -382,7 +383,7 @@ class OtpHelperServiceTest extends TestCase
         $this->assertEquals(['ip' => '192.168.1.1', 'user_agent' => 'Mozilla'], $otp->otp_meta);
     }
 
-    /** @test */
+    #[Test]
     public function it_stores_correlation_id(): void
     {
         $this->service->persistOtpCode('123456', [
@@ -402,7 +403,7 @@ class OtpHelperServiceTest extends TestCase
     |--------------------------------------------------------------------------
     */
 
-    /** @test */
+    #[Test]
     public function it_accepts_injected_model_for_testing(): void
     {
         $mockModel = Mockery::mock(SimpleOtp::class);
@@ -422,4 +423,3 @@ class OtpHelperServiceTest extends TestCase
         ]);
     }
 }
-

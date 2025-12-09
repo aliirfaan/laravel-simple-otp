@@ -5,6 +5,7 @@ namespace aliirfaan\LaravelSimpleOtp\Tests\Unit;
 use aliirfaan\LaravelSimpleOtp\Tests\TestCase;
 use aliirfaan\LaravelSimpleOtp\Models\SimpleOtp;
 use Carbon\Carbon;
+use PHPUnit\Framework\Attributes\Test;
 
 class SimpleOtpTest extends TestCase
 {
@@ -14,7 +15,7 @@ class SimpleOtpTest extends TestCase
     |--------------------------------------------------------------------------
     */
 
-    /** @test */
+    #[Test]
     public function it_uses_correct_table_name(): void
     {
         $model = new SimpleOtp();
@@ -22,7 +23,7 @@ class SimpleOtpTest extends TestCase
         $this->assertEquals('lso_otps', $model->getTable());
     }
 
-    /** @test */
+    #[Test]
     public function it_has_correct_fillable_attributes(): void
     {
         $model = new SimpleOtp();
@@ -43,7 +44,7 @@ class SimpleOtpTest extends TestCase
         $this->assertEquals($expected, $model->getFillable());
     }
 
-    /** @test */
+    #[Test]
     public function it_casts_datetime_fields_correctly(): void
     {
         $otp = SimpleOtp::create([
@@ -58,7 +59,7 @@ class SimpleOtpTest extends TestCase
         $this->assertInstanceOf(Carbon::class, $otp->otp_expired_at);
     }
 
-    /** @test */
+    #[Test]
     public function it_casts_otp_meta_as_array(): void
     {
         $otp = SimpleOtp::create([
@@ -82,7 +83,7 @@ class SimpleOtpTest extends TestCase
     |--------------------------------------------------------------------------
     */
 
-    /** @test */
+    #[Test]
     public function it_returns_null_when_no_otp_exists(): void
     {
         $model = new SimpleOtp();
@@ -92,7 +93,7 @@ class SimpleOtpTest extends TestCase
         $this->assertNull($result);
     }
 
-    /** @test */
+    #[Test]
     public function it_returns_latest_otp_by_generated_at(): void
     {
         $older = SimpleOtp::create([
@@ -122,7 +123,7 @@ class SimpleOtpTest extends TestCase
         $this->assertEquals('newer_hash', $result->otp_code_hash);
     }
 
-    /** @test */
+    #[Test]
     public function it_filters_by_actor_id(): void
     {
         SimpleOtp::create([
@@ -142,7 +143,7 @@ class SimpleOtpTest extends TestCase
         $this->assertNull($result);
     }
 
-    /** @test */
+    #[Test]
     public function it_filters_by_actor_type(): void
     {
         SimpleOtp::create([
@@ -162,7 +163,7 @@ class SimpleOtpTest extends TestCase
         $this->assertNull($result);
     }
 
-    /** @test */
+    #[Test]
     public function it_filters_by_otp_intent(): void
     {
         SimpleOtp::create([
@@ -182,7 +183,7 @@ class SimpleOtpTest extends TestCase
         $this->assertNull($result);
     }
 
-    /** @test */
+    #[Test]
     public function it_filters_by_device_id(): void
     {
         SimpleOtp::create([
@@ -208,7 +209,7 @@ class SimpleOtpTest extends TestCase
     |--------------------------------------------------------------------------
     */
 
-    /** @test */
+    #[Test]
     public function it_marks_otp_as_verified(): void
     {
         Carbon::setTestNow(Carbon::parse('2025-01-01 12:00:00'));
@@ -235,7 +236,7 @@ class SimpleOtpTest extends TestCase
         Carbon::setTestNow();
     }
 
-    /** @test */
+    #[Test]
     public function it_returns_zero_when_marking_nonexistent_otp(): void
     {
         $model = new SimpleOtp();
@@ -251,7 +252,7 @@ class SimpleOtpTest extends TestCase
     |--------------------------------------------------------------------------
     */
 
-    /** @test */
+    #[Test]
     public function it_generates_uuid_for_id(): void
     {
         $otp = SimpleOtp::create([
@@ -269,4 +270,3 @@ class SimpleOtpTest extends TestCase
         );
     }
 }
-
