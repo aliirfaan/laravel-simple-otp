@@ -5,13 +5,42 @@ namespace aliirfaan\LaravelSimpleOtp\Models;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Prunable;
+use Illuminate\Database\Eloquent\Builder;
 
 /**
  * OTP model
  */
 class SimpleOtp extends Model
 {
-    use HasUuids;
+    use HasUuids, Prunable;
+
+    /**
+     * Get the prunable model query.
+     * 
+     * Check if otp_retention_days > 0, if so, prune the OTP records.
+     * Prunes OTP records that are:
+     * - Expired (past their expiry date), OR
+     * - Already verified
+     * 
+     * If otp_retention_days is 0, no pruning will be done.
+     * Run via: php artisan model:prune --model="aliirfaan\LaravelSimpleOtp\Models\SimpleOtp"
+     * Or schedule in your application's console kernel.
+     */
+    public function prunable(): Builder
+    {
+        $retentionDays = (int) config('laravel-simple-otp.otp_retention_days', 0);
+
+        if ($retentionDays > 0) {
+            return static::where('otp_expired_at', '<', Carbon::now()->subDays($retentionDays))
+                ->orWhere(function (Builder $q) use ($retentionDays) {
+                    $q->whereNotNull('otp_verified_at')
+                        ->where('otp_verified_at', '<', Carbon::now()->subDays($retentionDays));
+                });
+        }
+
+        return static::whereRaw('0 = 1'); // Return empty query to avoid pruning
+    }
 
     protected $table = 'lso_otps';
 

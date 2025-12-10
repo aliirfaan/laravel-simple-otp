@@ -3,6 +3,28 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com) and this project adheres to [Semantic Versioning](https://semver.org).
 
+# 6.0.1 - 2025-12-10
+
+### Added
+
+- otp_retention_days config
+
+### Changed
+
+- Model SimpleOtp is now prunable
+
+### Deprecated
+
+- Nothing
+
+### Removed
+
+- Nothing
+
+### Fixed
+
+- Nothing
+
 # 6.0.0 - 2025-12-09
 
 ### Added

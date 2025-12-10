@@ -24,6 +24,11 @@ return [
     |
     | otp_simulated_code | String
     | The OTP code to use if simulation is enabled. The OTP generated will be generated with the simulated OTP code. Example: 256354
+    |
+    | otp_retention_days | Numeric
+    | Number of days to retain expired/verified OTP records before pruning.
+    | Used by Laravel's model:prune command.
+    | Default is 0, which means no pruning.
     */
 
     'otp_type' => env('OTP_TYPE', 'numeric'),
@@ -31,4 +36,5 @@ return [
     'otp_length' => env('OTP_LENGTH', 6),
     'otp_should_simulate' => env('OTP_SHOULD_SIMULATE', false),
     'otp_simulated_code' => env('OTP_SIMULATED_CODE'),
+    'otp_retention_days' => env('OTP_RETENTION_DAYS', 0),
 ];

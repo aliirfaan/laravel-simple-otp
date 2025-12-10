@@ -269,4 +269,113 @@ class SimpleOtpTest extends TestCase
             $otp->id
         );
     }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Prunable Tests
+    |--------------------------------------------------------------------------
+    */
+
+    #[Test]
+    public function prunable_returns_empty_query_when_retention_days_is_zero(): void
+    {
+        config(['laravel-simple-otp.otp_retention_days' => 0]);
+
+        // Create an old expired OTP
+        SimpleOtp::create([
+            'actor_id' => 'user-123',
+            'actor_type' => 'App\Models\User',
+            'otp_code_hash' => 'hash',
+            'otp_generated_at' => Carbon::now()->subDays(60),
+            'otp_expired_at' => Carbon::now()->subDays(60),
+        ]);
+
+        $model = new SimpleOtp();
+        $prunable = $model->prunable();
+
+        // Should match nothing when retention is 0
+        $this->assertEquals(0, $prunable->count());
+    }
+
+    #[Test]
+    public function prunable_includes_expired_otps_older_than_retention_period(): void
+    {
+        config(['laravel-simple-otp.otp_retention_days' => 30]);
+
+        // Old expired OTP (should be pruned)
+        $oldExpired = SimpleOtp::create([
+            'actor_id' => 'user-123',
+            'actor_type' => 'App\Models\User',
+            'otp_code_hash' => 'old_expired',
+            'otp_generated_at' => Carbon::now()->subDays(45),
+            'otp_expired_at' => Carbon::now()->subDays(45),
+        ]);
+
+        // Recent expired OTP (should NOT be pruned)
+        $recentExpired = SimpleOtp::create([
+            'actor_id' => 'user-123',
+            'actor_type' => 'App\Models\User',
+            'otp_code_hash' => 'recent_expired',
+            'otp_generated_at' => Carbon::now()->subDays(5),
+            'otp_expired_at' => Carbon::now()->subDays(5),
+        ]);
+
+        $model = new SimpleOtp();
+        $prunableIds = $model->prunable()->pluck('id')->toArray();
+
+        $this->assertContains($oldExpired->id, $prunableIds);
+        $this->assertNotContains($recentExpired->id, $prunableIds);
+    }
+
+    #[Test]
+    public function prunable_includes_verified_otps_older_than_retention_period(): void
+    {
+        config(['laravel-simple-otp.otp_retention_days' => 30]);
+
+        // Old verified OTP (should be pruned)
+        $oldVerified = SimpleOtp::create([
+            'actor_id' => 'user-123',
+            'actor_type' => 'App\Models\User',
+            'otp_code_hash' => 'old_verified',
+            'otp_generated_at' => Carbon::now()->subDays(45),
+            'otp_expired_at' => Carbon::now()->subDays(40),
+            'otp_verified_at' => Carbon::now()->subDays(45),
+        ]);
+
+        // Recent verified OTP (should NOT be pruned)
+        $recentVerified = SimpleOtp::create([
+            'actor_id' => 'user-123',
+            'actor_type' => 'App\Models\User',
+            'otp_code_hash' => 'recent_verified',
+            'otp_generated_at' => Carbon::now()->subDays(5),
+            'otp_expired_at' => Carbon::now(),
+            'otp_verified_at' => Carbon::now()->subDays(5),
+        ]);
+
+        $model = new SimpleOtp();
+        $prunableIds = $model->prunable()->pluck('id')->toArray();
+
+        $this->assertContains($oldVerified->id, $prunableIds);
+        $this->assertNotContains($recentVerified->id, $prunableIds);
+    }
+
+    #[Test]
+    public function prunable_does_not_include_active_unexpired_otps(): void
+    {
+        config(['laravel-simple-otp.otp_retention_days' => 30]);
+
+        // Active OTP (not expired, not verified)
+        $activeOtp = SimpleOtp::create([
+            'actor_id' => 'user-123',
+            'actor_type' => 'App\Models\User',
+            'otp_code_hash' => 'active',
+            'otp_generated_at' => Carbon::now(),
+            'otp_expired_at' => Carbon::now()->addMinutes(5),
+        ]);
+
+        $model = new SimpleOtp();
+        $prunableIds = $model->prunable()->pluck('id')->toArray();
+
+        $this->assertNotContains($activeOtp->id, $prunableIds);
+    }
 }

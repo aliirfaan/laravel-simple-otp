@@ -11,9 +11,11 @@ This package is not tied to Laravel Auth and you can use it to send OTP to any m
 * Generate random OTP based on length
 * Generate random OTP based on type (Numeric, alphanumeric)
 * Associate OTP code with a model object using the object id and object type
+* Supports OTP per device using device_id column
 * OTP code is hashed for better security
 * Validate OTP code based on presence, equality and expiry
-* Throws custom exceptions
+* Throws custom exceptions that you can catch and show your custom messages and dispatch your custom events
+* Model implements prunable for housekeeping
 
 ## Requirements
 
@@ -65,6 +67,7 @@ This package publishes an `laravel-simple-otp` file inside your applications's `
     'otp_length' => env('OTP_LENGTH', 6),
     'otp_should_simulate' => env('OTP_SHOULD_SIMULATE', false),
     'otp_simulated_code' => env('OTP_SIMULATED_CODE'),
+    'otp_retention_days' => env('OTP_RETENTION_DAYS', 0),
 ```
 
 ## Usage
