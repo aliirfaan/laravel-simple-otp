@@ -3,6 +3,28 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com) and this project adheres to [Semantic Versioning](https://semver.org).
 
+# 6.0.2 - 2026-04-02
+
+### Added
+
+- Nothing
+
+### Changed
+
+- dev dependency "orchestra/testbench": "^11.0", "phpunit/phpunit": "^12.0"
+
+### Deprecated
+
+- Nothing
+
+### Removed
+
+- Nothing
+
+### Fixed
+
+- Nothing
+
 # 6.0.1 - 2025-12-10
 
 ### Added
