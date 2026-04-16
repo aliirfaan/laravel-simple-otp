@@ -1,0 +1,6 @@
+/vendor/
+.git/
+.phpunit.cache/
+.vscode/
+.env
+*.log
