@@ -3,6 +3,29 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com) and this project adheres to [Semantic Versioning](https://semver.org).
 
+## 5.3.0 - 2026-04-16
+
+### Added
+
+- recipient column in guest scenarios where model_id and model_type is not applicable.
+
+### Changed
+
+- ModelGotOtp - create and get otp with recipient
+- Added PHP ^7.1 as requirement
+
+### Deprecated
+
+- Nothing
+
+### Removed
+
+- Nothing
+
+### Fixed
+
+- OtpHelperService generateOtpCode() PHP 8 fix implicit null warning
+
 ## 5.2.2 - 2025-10-17
 
 ### Added

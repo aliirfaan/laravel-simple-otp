@@ -21,10 +21,10 @@ class OtpHelperService
      * If hash configuration is set to true, use framework hashing function to hash code, else return code as is
      * If OTP simulation is enabled, generate OTP code with repeated fillable digit. If otp length is 6 and fillable digit is 1, generated code will be 111111 
      * 
-     * @param  int $otpCodeLength The length of the OTP code to generate
+     * @param int|null $otpCodeLength The length of the OTP code to generate
      * @return array Random OTP code and hashed otp
      */
-    public function generateOtpCode(int $otpCodeLength = null)
+    public function generateOtpCode(?int $otpCodeLength = null)
     {
         $otpCodeLength = intval($otpCodeLength);
         if ($otpCodeLength == 0) {

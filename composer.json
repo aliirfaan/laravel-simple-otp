@@ -9,6 +9,9 @@
             "email": "aliirfaan.freelance@gmail.com"
         }
     ],
+    "require": {
+        "php": "^7.1"
+    },
     "autoload": {
         "psr-4": {
             "aliirfaan\\LaravelSimpleOtp\\": "src/"

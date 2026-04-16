@@ -4,12 +4,13 @@ This package allows you to generate OTP (One time password). You can then verify
 
 ## Flexibility
 
-This package is not tied to Laravel Auth and you can use it to send OTP to any model in your project. For example you can send OTP to a Merchant or Customer model. It does not matter if you are coding a REST API or view based backend, I have tried to code the methods to be used independently.
+This package is not tied to Laravel Auth and you can use it to send OTP to any model/guest in your project. For example you can send OTP to a Merchant or Customer model. It does not matter if you are coding a REST API or view based backend, I have tried to code the methods to be used independently.
 
 ## Features
 
 * Generate random OTP based on length
 * Associate OTP code with a model object using the object id and object type
+* Associate OTP with recipient column in cases where model is not applicable.
 * Hash OTP code for better security
 * Validate OTP code based on presence, equality and expiry
 * Throws custom exceptions
@@ -19,7 +20,6 @@ This package is not tied to Laravel Auth and you can use it to send OTP to any m
 
 * [Composer](https://getcomposer.org/)
 * [Laravel](http://laravel.com/)
-
 
 ## Installation
 
@@ -136,6 +136,7 @@ class TestController extends Controller
     public function test_send_otp(Request $request, OtpHelperService $otpHelperService)
     {
         // after an action like login, get yout model from the database
+        // for guest recipient, generate otp directly
         $modelId = 1;
         $yourExampleModelObj = App\ExampleModel::find($modelId);
 
@@ -144,6 +145,7 @@ class TestController extends Controller
 
         // model type can be anything but it must be unique if you want to send OTP to multiple model classes
         // it can also be the class name of the object. You get it using new \ReflectionClass($yourExampleModelObj))->getShortName()
+        // for recipient, send 'recipient' key in $otpData
         $modelType = 'exampleModel'; 
         $phoneNumber = $yourExampleModelObj->phone;
 
@@ -173,6 +175,7 @@ class TestController extends Controller
     {
         
         // normally you will get this via $request
+        // for recipient, send $recipient in getOtp()
         $modelId = 1;
         $modelType = 'exampleModel';
         $otpIntent = 'OTP_LOGIN',
