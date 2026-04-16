@@ -54,7 +54,8 @@ class SimpleOtp extends Model
         'otp_verified_at', 
         'otp_expired_at', 
         'correlation_id', 
-        'otp_meta'
+        'otp_meta',
+        'recipient'
     ];
 
     protected $casts = [
@@ -71,15 +72,17 @@ class SimpleOtp extends Model
      * @param  string $actorType name of actor
      * @param  string $otpIntent why was the OTP sent - a model maybe sent multiple OTPs
      * @param  string $deviceId id of device
+     * @param  string $recipient recipient of the OTP
      * 
      * @return  self|null Row if found or null if not found
      */
-    public function getLatestOtp(?string $actorId, ?string $actorType, ?string $otpIntent, ?string $deviceId): ?self
+    public function getLatestOtp(?string $actorId, ?string $actorType, ?string $otpIntent, ?string $deviceId, ?string $recipient): ?self
     {
         return $this->where('actor_id', $actorId)
             ->where('actor_type', $actorType)
             ->where('otp_intent', $otpIntent)
             ->where('device_id', $deviceId)
+            ->where('recipient', $recipient)
             ->orderByDesc('otp_generated_at')
             ->first();
     }

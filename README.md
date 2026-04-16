@@ -11,6 +11,7 @@ This package is not tied to Laravel Auth and you can use it to send OTP to any m
 * Generate random OTP based on length
 * Generate random OTP based on type (Numeric, alphanumeric)
 * Associate OTP code with a model object using the object id and object type
+* Associate OTP code with recipient in senarios where model is not applicable
 * Supports OTP per device using device_id column
 * OTP code is hashed for better security
 * Validate OTP code based on presence, equality and expiry
@@ -102,6 +103,7 @@ class TestController extends Controller
     public function test_send_otp(Request $request, OtpHelperService $otpHelperService)
     {
         // after an action like login, get yout model from the database
+        // for recipient, persist otp code directly
         $modelId = 1;
         $yourExampleModelObj = App\ExampleModel::find($modelId);
 
@@ -113,6 +115,7 @@ class TestController extends Controller
         $modelType = 'exampleModel'; 
         $phoneNumber = $yourExampleModelObj->phone;
 
+        // pass 'recipient' key to persist for recipient
         $otpData = [
             'actor_id' => $modelId,
             'actor_type' => $modelType,
@@ -142,6 +145,7 @@ class TestController extends Controller
         $otpIntent = 'OTP_LOGIN',
         $otpCode = '123456';
 
+        // pass 'recipient' key to validate otp code
         $validateOtpData = [
             'actor_id' => $modelId,
             'actor_type' => $modelType,

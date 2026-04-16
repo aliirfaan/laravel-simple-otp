@@ -3,6 +3,31 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com) and this project adheres to [Semantic Versioning](https://semver.org).
 
+# 6.0.3 - 2026-04-16
+
+### Added
+
+- recipient column in scenarios where actor is not available
+
+### Changed
+
+- actor_id to nullable
+- SimpleOtp getLatestOtp() - accept recipient
+- OtpHelperService validateOtpCode() - accept recipient
+- OtpHelperService persistOtpCode() - accept recipient
+
+### Deprecated
+
+- Nothing
+
+### Removed
+
+- Nothing
+
+### Fixed
+
+- Nothing
+
 # 6.0.2 - 2026-04-02
 
 ### Added

@@ -173,10 +173,11 @@ class OtpHelperService
      * 5. Mark OTP as verified on success
      *
      * @param  array $validateData {
-     *     @type string $actor_id    Actor identifier (required)
-     *     @type string $actor_type  Actor type (required)
+     *     @type string $actor_id    Actor identifier (optional)
+     *     @type string $actor_type  Actor type (optional)
      *     @type string $otp_intent  OTP intent/purpose (required)
      *     @type string $device_id   Device identifier (optional)
+     *     @type string $recipient   Recipient of the OTP (optional)
      *     @type string $otp_code    Submitted OTP code to validate (required)
      * }
      * @return bool
@@ -191,10 +192,11 @@ class OtpHelperService
         $actorType = $validateData['actor_type'] ?? null;
         $otpIntent = $validateData['otp_intent'] ?? null;
         $deviceId = $validateData['device_id'] ?? null;
+        $recipient = $validateData['recipient'] ?? null;
         $otpCode = $validateData['otp_code'] ?? null;
 
         // Get latest OTP for actor/intent/device
-        $latestOtp = $this->otpModel->getLatestOtp($actorId, $actorType, $otpIntent, $deviceId);
+        $latestOtp = $this->otpModel->getLatestOtp($actorId, $actorType, $otpIntent, $deviceId, $recipient);
         $now = Carbon::now();
 
         if ($latestOtp === null) {
@@ -236,11 +238,12 @@ class OtpHelperService
      */
     public function persistOtpCode(string $otpCode, array $otpData): array
     {
-        $actorId = $otpData['actor_id'];
+        $actorId = $otpData['actor_id'] ?? null;
         $actorType = $otpData['actor_type'] ?? null;
         $deviceId = $otpData['device_id'] ?? null;
         $otpIntent = $otpData['otp_intent'] ?? null;
         $correlationId = $otpData['correlation_id'] ?? null;
+        $recipient = $otpData['recipient'] ?? null;
         $otpMeta = $otpData['otp_meta'] ?? null;
 
         $otpCodeHash = Hash::make($otpCode);
@@ -257,6 +260,7 @@ class OtpHelperService
             'otp_expired_at' => $otpExpiredAt,
             'correlation_id' => $correlationId,
             'otp_meta' => $otpMeta,
+            'recipient' => $recipient,
         ]);
 
         return [

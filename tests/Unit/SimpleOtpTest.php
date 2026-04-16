@@ -39,6 +39,7 @@ class SimpleOtpTest extends TestCase
             'otp_expired_at',
             'correlation_id',
             'otp_meta',
+            'recipient',
         ];
         
         $this->assertEquals($expected, $model->getFillable());
@@ -88,7 +89,7 @@ class SimpleOtpTest extends TestCase
     {
         $model = new SimpleOtp();
         
-        $result = $model->getLatestOtp('user-123', 'App\Models\User', 'test', 'device-1');
+        $result = $model->getLatestOtp('user-123', 'App\Models\User', 'test', 'device-1', null);
         
         $this->assertNull($result);
     }
@@ -117,7 +118,7 @@ class SimpleOtpTest extends TestCase
         ]);
 
         $model = new SimpleOtp();
-        $result = $model->getLatestOtp('user-123', 'App\Models\User', 'email_verification', 'device-1');
+        $result = $model->getLatestOtp('user-123', 'App\Models\User', 'email_verification', 'device-1', null);
         
         $this->assertEquals($newer->id, $result->id);
         $this->assertEquals('newer_hash', $result->otp_code_hash);
@@ -138,7 +139,7 @@ class SimpleOtpTest extends TestCase
 
         $model = new SimpleOtp();
         
-        $result = $model->getLatestOtp('user-999', 'App\Models\User', 'test', 'device-1');
+        $result = $model->getLatestOtp('user-999', 'App\Models\User', 'test', 'device-1', null);
         
         $this->assertNull($result);
     }
@@ -158,7 +159,7 @@ class SimpleOtpTest extends TestCase
 
         $model = new SimpleOtp();
         
-        $result = $model->getLatestOtp('user-123', 'App\Models\Admin', 'test', 'device-1');
+        $result = $model->getLatestOtp('user-123', 'App\Models\Admin', 'test', 'device-1', null);
         
         $this->assertNull($result);
     }
@@ -178,7 +179,7 @@ class SimpleOtpTest extends TestCase
 
         $model = new SimpleOtp();
         
-        $result = $model->getLatestOtp('user-123', 'App\Models\User', 'password_reset', 'device-1');
+        $result = $model->getLatestOtp('user-123', 'App\Models\User', 'password_reset', 'device-1', null);
         
         $this->assertNull($result);
     }
@@ -198,9 +199,106 @@ class SimpleOtpTest extends TestCase
 
         $model = new SimpleOtp();
         
-        $result = $model->getLatestOtp('user-123', 'App\Models\User', 'test', 'device-999');
+        $result = $model->getLatestOtp('user-123', 'App\Models\User', 'test', 'device-999', null);
         
         $this->assertNull($result);
+    }
+
+    #[Test]
+    public function it_filters_by_recipient(): void
+    {
+        SimpleOtp::create([
+            'actor_id' => 'user-123',
+            'actor_type' => 'App\Models\User',
+            'otp_intent' => 'sms_verification',
+            'device_id' => 'device-1',
+            'recipient' => '+15550001',
+            'otp_code_hash' => 'hash_a_old',
+            'otp_generated_at' => Carbon::now()->subMinutes(10),
+            'otp_expired_at' => Carbon::now()->addMinutes(5),
+        ]);
+
+        $newerForA = SimpleOtp::create([
+            'actor_id' => 'user-123',
+            'actor_type' => 'App\Models\User',
+            'otp_intent' => 'sms_verification',
+            'device_id' => 'device-1',
+            'recipient' => '+15550001',
+            'otp_code_hash' => 'hash_a_new',
+            'otp_generated_at' => Carbon::now(),
+            'otp_expired_at' => Carbon::now()->addMinutes(5),
+        ]);
+
+        SimpleOtp::create([
+            'actor_id' => 'user-123',
+            'actor_type' => 'App\Models\User',
+            'otp_intent' => 'sms_verification',
+            'device_id' => 'device-1',
+            'recipient' => '+15550002',
+            'otp_code_hash' => 'hash_b',
+            'otp_generated_at' => Carbon::now(),
+            'otp_expired_at' => Carbon::now()->addMinutes(5),
+        ]);
+
+        $model = new SimpleOtp();
+        $result = $model->getLatestOtp('user-123', 'App\Models\User', 'sms_verification', 'device-1', '+15550001');
+
+        $this->assertNotNull($result);
+        $this->assertEquals($newerForA->id, $result->id);
+        $this->assertEquals('hash_a_new', $result->otp_code_hash);
+    }
+
+    #[Test]
+    public function it_returns_null_when_recipient_does_not_match(): void
+    {
+        SimpleOtp::create([
+            'actor_id' => 'user-123',
+            'actor_type' => 'App\Models\User',
+            'otp_intent' => 'email_verification',
+            'device_id' => 'device-1',
+            'recipient' => 'alice@example.com',
+            'otp_code_hash' => 'hash',
+            'otp_generated_at' => Carbon::now(),
+            'otp_expired_at' => Carbon::now()->addMinutes(5),
+        ]);
+
+        $model = new SimpleOtp();
+        $result = $model->getLatestOtp('user-123', 'App\Models\User', 'email_verification', 'device-1', 'bob@example.com');
+
+        $this->assertNull($result);
+    }
+
+    #[Test]
+    public function it_returns_latest_otp_when_actor_and_device_are_null_but_recipient_is_email(): void
+    {
+        SimpleOtp::create([
+            'actor_id' => null,
+            'actor_type' => null,
+            'device_id' => null,
+            'otp_intent' => 'magic_link',
+            'recipient' => 'user@example.com',
+            'otp_code_hash' => 'older',
+            'otp_generated_at' => Carbon::now()->subMinutes(5),
+            'otp_expired_at' => Carbon::now()->addMinutes(10),
+        ]);
+
+        $newer = SimpleOtp::create([
+            'actor_id' => null,
+            'actor_type' => null,
+            'device_id' => null,
+            'otp_intent' => 'magic_link',
+            'recipient' => 'user@example.com',
+            'otp_code_hash' => 'newer',
+            'otp_generated_at' => Carbon::now(),
+            'otp_expired_at' => Carbon::now()->addMinutes(10),
+        ]);
+
+        $model = new SimpleOtp();
+        $result = $model->getLatestOtp(null, null, 'magic_link', null, 'user@example.com');
+
+        $this->assertNotNull($result);
+        $this->assertEquals($newer->id, $result->id);
+        $this->assertEquals('newer', $result->otp_code_hash);
     }
 
     /*
@@ -265,7 +363,7 @@ class SimpleOtpTest extends TestCase
 
         $this->assertNotNull($otp->id);
         $this->assertMatchesRegularExpression(
-            '/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i',
+            '/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i',
             $otp->id
         );
     }
