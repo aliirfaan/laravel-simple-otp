@@ -3,6 +3,28 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com) and this project adheres to [Semantic Versioning](https://semver.org).
 
+## 5.3.1 - 2026-04-20
+
+### Added
+
+- Nothing
+
+### Changed
+
+- composer - require php >= 7.1
+
+### Deprecated
+
+- Nothing
+
+### Removed
+
+- Nothing
+
+### Fixed
+
+- OtpHelperService generateOtpCode() PHP 8 fix implicit null warning
+
 ## 5.3.0 - 2026-04-16
 
 ### Added
