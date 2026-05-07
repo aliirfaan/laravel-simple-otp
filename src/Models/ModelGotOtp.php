@@ -28,7 +28,7 @@ class ModelGotOtp extends Model
                     'model_id' => $otpData['model_id'],
                     'model_type' => $otpData['model_type'],
                     'otp_intent' => $otpData['otp_intent'],
-                    'recipient' => $otpData['recipient'],
+                    'recipient' => $otpData['recipient'] ?? null,
                 ],
                 [
                     'otp_code' => $otpData['otp_code'],
@@ -42,7 +42,7 @@ class ModelGotOtp extends Model
             'model_id' => $otpData['model_id'],
             'model_type' => $otpData['model_type'],
             'otp_intent' => $otpData['otp_intent'],
-            'recipient' => $otpData['recipient'],
+            'recipient' => $otpData['recipient'] ?? null,
             'otp_code' => $otpData['otp_code'],
             'otp_generated_at' => Carbon::now()->toDateTimeString(),
         ]);
