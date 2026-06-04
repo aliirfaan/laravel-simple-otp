@@ -75,6 +75,19 @@ Taken into consideration only if otp_does_expire is set to true
 'otp_timeout_seconds' => 180
 ```
 
+### Per-request TTL override
+
+`otp_timeout_seconds` in config remains the default. To use a different TTL for a specific flow (for example a longer password-reset OTP), pass an optional third argument to `otpCodeIsValid()` and `getOtpCodeExpiryDate()`, or a second argument to `otpCodeDidExpire()`:
+
+```php
+$timeoutSeconds = 600; // null uses config default
+
+$otpHelperService->otpCodeIsValid($otpObj, $otpCode, $timeoutSeconds);
+$otpHelperService->getOtpCodeExpiryDate($otpObj, 'Y-m-d H:i:s', $timeoutSeconds);
+```
+
+Use the same `$timeoutSeconds` when verifying as when the OTP was issued. A practical approach is to centralize TTL by `otp_intent` (or similar) in your application so send and verify stay aligned.
+
 otp_digit_length | Numeric  
 The number of digits that the OTP will have
 

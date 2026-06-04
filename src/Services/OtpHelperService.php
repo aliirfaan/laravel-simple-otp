@@ -16,6 +16,21 @@ use aliirfaan\LaravelSimpleOtp\Exceptions\NotMatchException;
 class OtpHelperService
 {
     /**
+     * Resolve OTP timeout in seconds from override or configuration.
+     *
+     * @param  int|null $timeoutSeconds Custom TTL in seconds; null uses config
+     * @return int
+     */
+    private function resolveOtpTimeoutSeconds(?int $timeoutSeconds)
+    {
+        if ($timeoutSeconds !== null) {
+            return max(1, (int) $timeoutSeconds);
+        }
+
+        return max(1, (int) config('otp.otp_timeout_seconds', 180));
+    }
+
+    /**
      * Generate a random OTP code based on length
      *
      * If hash configuration is set to true, use framework hashing function to hash code, else return code as is
@@ -53,16 +68,16 @@ class OtpHelperService
     /**
      * Verify if OTP code has expired based on created date and timeout seconds
      *
-     * Reads configuration value
      * If OTP expires is set to true then checks whether the code has expired
      *
      * @param  string $createdAt Date in Y-m-d H:i:s format
+     * @param  int|null $timeoutSeconds Custom TTL in seconds; null uses config otp_timeout_seconds
      * @return bool Whether the OTP expired or not
      */
-    public function otpCodeDidExpire($createdAt)
+    public function otpCodeDidExpire($createdAt, ?int $timeoutSeconds = null)
     {
         if (config('otp.otp_does_expire', false)) {
-            return $createdAt < Carbon::now()->subSeconds(intval(config('otp.otp_timeout_seconds')));
+            return $createdAt < Carbon::now()->subSeconds($this->resolveOtpTimeoutSeconds($timeoutSeconds));
         }
 
         return false;
@@ -98,18 +113,19 @@ class OtpHelperService
      *
      * @param  ModelGotOtp $otpObj OTP model object
      * @param  string $otpCode OTP code
+     * @param  int|null $timeoutSeconds Custom TTL in seconds; null uses config otp_timeout_seconds
      * @return bool Whether valid or not
      * @throws NotFoundException If OTP code does not exist
      * @throws NotMatchException If OTP code does not match
      * @throws ExpiredException If OTP code has expired
      */
-    public function otpCodeIsValid($otpObj, $otpCode)
+    public function otpCodeIsValid($otpObj, $otpCode, ?int $timeoutSeconds = null)
     {
         if (is_null($otpObj)) {
             throw new NotFoundException('OTP was not found');
         } elseif ($this->otpCodeDidMatch($otpCode, $otpObj->otp_code) == false) {
             throw new NotMatchException('OTP did not match');
-        } elseif ($this->otpCodeDidExpire($otpObj->otp_generated_at) == true) {
+        } elseif ($this->otpCodeDidExpire($otpObj->otp_generated_at, $timeoutSeconds) == true) {
             throw new ExpiredException('Expired OTP');
         }
 
@@ -121,13 +137,14 @@ class OtpHelperService
      *
      * @param  ModelGotOtp $otpObj OTP model object
      * @param  string $format date time format
+     * @param  int|null $timeoutSeconds Custom TTL in seconds; null uses config otp_timeout_seconds
      *
      * @return string|null
      */
-    public function getOtpCodeExpiryDate($otpObj, $format = 'Y-m-d H:i:s')
+    public function getOtpCodeExpiryDate($otpObj, $format = 'Y-m-d H:i:s', ?int $timeoutSeconds = null)
     {
         if (config('otp.otp_does_expire', false)) {
-            return (Carbon::parse($otpObj->otp_generated_at)->addSeconds(intval(config('otp.otp_timeout_seconds'))))->format($format);
+            return (Carbon::parse($otpObj->otp_generated_at)->addSeconds($this->resolveOtpTimeoutSeconds($timeoutSeconds)))->format($format);
         }
 
         return null;
