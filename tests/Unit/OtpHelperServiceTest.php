@@ -370,6 +370,26 @@ class OtpHelperServiceTest extends TestCase
     }
 
     #[Test]
+    public function it_sets_custom_expiry_when_otp_expired_at_provided(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2025-01-01 12:00:00'));
+        config(['laravel-simple-otp.otp_timeout_seconds' => 180]);
+
+        $this->service->persistOtpCode('123456', [
+            'actor_id' => 'user-123',
+            'actor_type' => 'App\Models\User',
+            'otp_expired_at' => '2025-01-01 12:30:00',
+        ]);
+
+        $otp = SimpleOtp::first();
+
+        $this->assertEquals('2025-01-01 12:00:00', $otp->otp_generated_at->format('Y-m-d H:i:s'));
+        $this->assertEquals('2025-01-01 12:30:00', $otp->otp_expired_at->format('Y-m-d H:i:s'));
+
+        Carbon::setTestNow();
+    }
+
+    #[Test]
     public function it_stores_optional_meta_data(): void
     {
         $this->service->persistOtpCode('123456', [

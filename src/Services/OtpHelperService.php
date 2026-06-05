@@ -227,7 +227,7 @@ class OtpHelperService
     /**
      * Persist OTP code in the database
      * 
-     * Calculate otp_expired_at based on otp_timeout_seconds
+     * Set otp_expired_at from otpData when provided, otherwise from config otp_timeout_seconds
      * Hash code
      * Return expired_at and otp length
      *
@@ -248,7 +248,12 @@ class OtpHelperService
 
         $otpCodeHash = Hash::make($otpCode);
         $otpGeneratedAt = Carbon::now();
-        $otpExpiredAt = $otpGeneratedAt->copy()->addSeconds((int) config('laravel-simple-otp.otp_timeout_seconds'));
+
+        if (isset($otpData['otp_expired_at'])) {
+            $otpExpiredAt = Carbon::parse($otpData['otp_expired_at']);
+        } else {
+            $otpExpiredAt = $otpGeneratedAt->copy()->addSeconds((int) config('laravel-simple-otp.otp_timeout_seconds'));
+        }
 
         $otp = $this->otpModel->create([
             'actor_id' => $actorId,

@@ -116,10 +116,12 @@ class TestController extends Controller
         $phoneNumber = $yourExampleModelObj->phone;
 
         // pass 'recipient' key to persist for recipient
+        // optionally pass 'otp_expired_at' for a custom expiry; otherwise config otp_timeout_seconds is used
         $otpData = [
             'actor_id' => $modelId,
             'actor_type' => $modelType,
             'otp_intent' => 'OTP_LOGIN',
+            // 'otp_expired_at' => now()->addMinutes(10),
         ];
 
         /**
