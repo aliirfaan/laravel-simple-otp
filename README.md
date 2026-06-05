@@ -6,6 +6,8 @@ This package allows you to generate OTP (One time password). You can then verify
 
 This package is not tied to Laravel Auth and you can use it to send OTP to any model in your project. For example you can send OTP to a Merchant or Customer model. It does not matter if you are coding a REST API or view based backend, I have tried to code the methods to be used independently.
 
+OTP profiles allows you to define different parameters for different OTP scenarios.
+
 ## Features
 
 * Generate random OTP based on length
