@@ -36,32 +36,27 @@ class OtpHelperServiceTest extends TestCase
     */
 
     #[Test]
-    public function it_generates_otp_with_default_length(): void
+    public function it_generates_otp_with_default_profile_length(): void
     {
-        config(['laravel-simple-otp.otp_length' => 6]);
-        
         $otp = $this->service->generateOtpCode();
-        
+
         $this->assertEquals(6, strlen($otp));
     }
 
     #[Test]
-    public function it_generates_otp_with_custom_length(): void
+    public function it_generates_otp_with_named_profile_length(): void
     {
-        $otp = $this->service->generateOtpCode(8);
-        
+        $otp = $this->service->generateOtpCode('length_8');
+
         $this->assertEquals(8, strlen($otp));
     }
 
     #[Test]
     public function it_generates_numeric_otp_without_zero(): void
     {
-        config(['laravel-simple-otp.otp_type' => 'numeric']);
-        
-        // Generate multiple OTPs to increase confidence
         for ($i = 0; $i < 50; $i++) {
-            $otp = $this->service->generateOtpCode(6);
-            
+            $otp = $this->service->generateOtpCode();
+
             $this->assertMatchesRegularExpression('/^[1-9]+$/', $otp);
             $this->assertStringNotContainsString('0', $otp);
         }
@@ -70,11 +65,9 @@ class OtpHelperServiceTest extends TestCase
     #[Test]
     public function it_generates_alphanumeric_otp_without_ambiguous_chars(): void
     {
-        config(['laravel-simple-otp.otp_type' => 'alphanumeric']);
-        
         for ($i = 0; $i < 50; $i++) {
-            $otp = $this->service->generateOtpCode(8);
-            
+            $otp = $this->service->generateOtpCode('alphanumeric_8');
+
             $this->assertStringNotContainsString('0', $otp);
             $this->assertStringNotContainsString('O', $otp);
             $this->assertStringNotContainsString('o', $otp);
@@ -85,26 +78,26 @@ class OtpHelperServiceTest extends TestCase
     #[Test]
     public function it_returns_simulated_otp_when_simulation_enabled(): void
     {
-        config([
-            'laravel-simple-otp.otp_should_simulate' => true,
-            'laravel-simple-otp.otp_simulated_code' => '999999',
+        $this->setDefaultProfileOverrides([
+            'otp_should_simulate' => true,
+            'otp_simulated_code' => '999999',
         ]);
-        
-        $otp = $this->service->generateOtpCode(6);
-        
+
+        $otp = $this->service->generateOtpCode();
+
         $this->assertEquals('999999', $otp);
     }
 
     #[Test]
     public function it_pads_simulated_otp_if_shorter_than_requested_length(): void
     {
-        config([
-            'laravel-simple-otp.otp_should_simulate' => true,
-            'laravel-simple-otp.otp_simulated_code' => '123',
+        $this->setDefaultProfileOverrides([
+            'otp_should_simulate' => true,
+            'otp_simulated_code' => '123',
         ]);
-        
-        $otp = $this->service->generateOtpCode(6);
-        
+
+        $otp = $this->service->generateOtpCode();
+
         $this->assertEquals('123111', $otp);
         $this->assertEquals(6, strlen($otp));
     }
@@ -112,13 +105,13 @@ class OtpHelperServiceTest extends TestCase
     #[Test]
     public function it_truncates_simulated_otp_if_longer_than_requested_length(): void
     {
-        config([
-            'laravel-simple-otp.otp_should_simulate' => true,
-            'laravel-simple-otp.otp_simulated_code' => '123456789',
+        $this->setDefaultProfileOverrides([
+            'otp_should_simulate' => true,
+            'otp_simulated_code' => '123456789',
         ]);
-        
-        $otp = $this->service->generateOtpCode(6);
-        
+
+        $otp = $this->service->generateOtpCode();
+
         $this->assertEquals('123456', $otp);
     }
 
@@ -127,8 +120,8 @@ class OtpHelperServiceTest extends TestCase
     {
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('OTP length must be between 4 and 12');
-        
-        $this->service->generateOtpCode(3);
+
+        $this->service->generateOtpCode('length_3');
     }
 
     #[Test]
@@ -136,24 +129,33 @@ class OtpHelperServiceTest extends TestCase
     {
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('OTP length must be between 4 and 12');
-        
-        $this->service->generateOtpCode(13);
+
+        $this->service->generateOtpCode('length_13');
     }
 
     #[Test]
-    public function it_accepts_minimum_length(): void
+    public function it_accepts_minimum_length_profile(): void
     {
-        $otp = $this->service->generateOtpCode(4);
-        
+        $otp = $this->service->generateOtpCode('length_4');
+
         $this->assertEquals(4, strlen($otp));
     }
 
     #[Test]
-    public function it_accepts_maximum_length(): void
+    public function it_accepts_maximum_length_profile(): void
     {
-        $otp = $this->service->generateOtpCode(12);
-        
+        $otp = $this->service->generateOtpCode('length_12');
+
         $this->assertEquals(12, strlen($otp));
+    }
+
+    #[Test]
+    public function it_throws_exception_for_unknown_profile_on_generate(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('OTP profile [unknown] is not defined.');
+
+        $this->service->generateOtpCode('unknown');
     }
 
     /*
@@ -314,8 +316,6 @@ class OtpHelperServiceTest extends TestCase
     #[Test]
     public function it_persists_otp_code_to_database(): void
     {
-        config(['laravel-simple-otp.otp_timeout_seconds' => 180]);
-        
         $result = $this->service->persistOtpCode('123456', [
             'actor_id' => 'user-123',
             'actor_type' => 'App\Models\User',
@@ -351,42 +351,54 @@ class OtpHelperServiceTest extends TestCase
     }
 
     #[Test]
-    public function it_sets_correct_expiry_time(): void
+    public function it_sets_correct_expiry_time_from_default_profile(): void
     {
         Carbon::setTestNow(Carbon::parse('2025-01-01 12:00:00'));
-        config(['laravel-simple-otp.otp_timeout_seconds' => 300]); // 5 minutes
-        
+
         $this->service->persistOtpCode('123456', [
             'actor_id' => 'user-123',
             'actor_type' => 'App\Models\User',
         ]);
 
         $otp = SimpleOtp::first();
-        
+
         $this->assertEquals('2025-01-01 12:00:00', $otp->otp_generated_at->format('Y-m-d H:i:s'));
-        $this->assertEquals('2025-01-01 12:05:00', $otp->otp_expired_at->format('Y-m-d H:i:s'));
-        
-        Carbon::setTestNow(); // Reset
+        $this->assertEquals('2025-01-01 12:03:00', $otp->otp_expired_at->format('Y-m-d H:i:s'));
+        $this->assertEquals('default', $otp->profile);
+
+        Carbon::setTestNow();
     }
 
     #[Test]
-    public function it_sets_custom_expiry_when_otp_expired_at_provided(): void
+    public function it_sets_expiry_time_from_named_profile(): void
     {
         Carbon::setTestNow(Carbon::parse('2025-01-01 12:00:00'));
-        config(['laravel-simple-otp.otp_timeout_seconds' => 180]);
 
         $this->service->persistOtpCode('123456', [
             'actor_id' => 'user-123',
             'actor_type' => 'App\Models\User',
-            'otp_expired_at' => '2025-01-01 12:30:00',
+            'profile' => 'password_reset',
         ]);
 
         $otp = SimpleOtp::first();
 
-        $this->assertEquals('2025-01-01 12:00:00', $otp->otp_generated_at->format('Y-m-d H:i:s'));
-        $this->assertEquals('2025-01-01 12:30:00', $otp->otp_expired_at->format('Y-m-d H:i:s'));
+        $this->assertEquals('2025-01-01 12:10:00', $otp->otp_expired_at->format('Y-m-d H:i:s'));
+        $this->assertEquals('password_reset', $otp->profile);
 
         Carbon::setTestNow();
+    }
+
+    #[Test]
+    public function it_throws_exception_for_unknown_profile_on_persist(): void
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('OTP profile [unknown] is not defined.');
+
+        $this->service->persistOtpCode('123456', [
+            'actor_id' => 'user-123',
+            'actor_type' => 'App\Models\User',
+            'profile' => 'unknown',
+        ]);
     }
 
     #[Test]

@@ -3,6 +3,33 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com) and this project adheres to [Semantic Versioning](https://semver.org).
 
+# 7.0.0 - 2026-06-04
+
+### Added
+
+- OTP profiles via `default_profile` and `otp_profiles` config (type, length, timeout per profile)
+- `profile` column on `lso_otps`; resolved profile name stored on persist
+- Optional `profile` in `persistOtpCode()` `$otpData`
+- Optional `otp_expired_at` in `persistOtpCode()` `$otpData` to set a custom expiry per OTP; omitted key uses config `otp_timeout_seconds`
+
+### Changed
+
+- `generateOtpCode(?int $otpCodeLength)` replaced by `generateOtpCode(?string $profile = null)`; use profile config for length and type
+- `persistOtpCode()` always sets `otp_expired_at` from profile `otp_timeout_seconds` (custom `otp_expired_at` in `$otpData` no longer supported)
+- Top-level `otp_type`, `otp_length`, `otp_timeout_seconds`, `otp_should_simulate`, `otp_simulated_code`, and `otp_retention_days` removed; configure via `otp_profiles` (missing keys fall back to `default_profile`)
+
+### Deprecated
+
+- Nothing
+
+### Removed
+
+- Nothing
+
+### Fixed
+
+- Nothing
+
 # 6.0.3 - 2026-04-16
 
 ### Added

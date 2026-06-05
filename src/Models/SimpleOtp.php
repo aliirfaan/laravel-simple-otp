@@ -18,28 +18,51 @@ class SimpleOtp extends Model
     /**
      * Get the prunable model query.
      * 
-     * Check if otp_retention_days > 0, if so, prune the OTP records.
-     * Prunes OTP records that are:
-     * - Expired (past their expiry date), OR
-     * - Already verified
+     * Uses otp_retention_days from each profile (fallback: default_profile).
+     * Prunes OTP records that are expired or verified past their profile retention window.
+     * Rows with null profile use the default_profile retention settings.
      * 
-     * If otp_retention_days is 0, no pruning will be done.
+     * If all profile retention values are 0, no pruning is done.
      * Run via: php artisan model:prune --model="aliirfaan\LaravelSimpleOtp\Models\SimpleOtp"
-     * Or schedule in your application's console kernel.
      */
     public function prunable(): Builder
     {
-        $retentionDays = (int) config('laravel-simple-otp.otp_retention_days', 0);
+        $profiles = config('laravel-simple-otp.otp_profiles', []);
+        $defaultProfileName = (string) config('laravel-simple-otp.default_profile', 'default');
+        $defaultProfile = $profiles[$defaultProfileName] ?? [];
 
-        if ($retentionDays > 0) {
-            return static::where('otp_expired_at', '<', Carbon::now()->subDays($retentionDays))
-                ->orWhere(function (Builder $q) use ($retentionDays) {
-                    $q->whereNotNull('otp_verified_at')
-                        ->where('otp_verified_at', '<', Carbon::now()->subDays($retentionDays));
+        $query = static::query()->whereRaw('0 = 1');
+
+        foreach ($profiles as $profileName => $profileConfig) {
+            $retentionDays = (int) ($profileConfig['otp_retention_days'] ?? $defaultProfile['otp_retention_days'] ?? 0);
+
+            if ($retentionDays <= 0) {
+                continue;
+            }
+
+            $cutoff = Carbon::now()->subDays($retentionDays);
+
+            $query->orWhere(function (Builder $q) use ($profileName, $defaultProfileName, $cutoff) {
+                if ($profileName === $defaultProfileName) {
+                    $q->where(function (Builder $profileQuery) use ($profileName) {
+                        $profileQuery->where('profile', $profileName)
+                            ->orWhereNull('profile');
+                    });
+                } else {
+                    $q->where('profile', $profileName);
+                }
+
+                $q->where(function (Builder $inner) use ($cutoff) {
+                    $inner->where('otp_expired_at', '<', $cutoff)
+                        ->orWhere(function (Builder $verified) use ($cutoff) {
+                            $verified->whereNotNull('otp_verified_at')
+                                ->where('otp_verified_at', '<', $cutoff);
+                        });
                 });
+            });
         }
 
-        return static::whereRaw('0 = 1'); // Return empty query to avoid pruning
+        return $query;
     }
 
     protected $table = 'lso_otps';
@@ -55,7 +78,8 @@ class SimpleOtp extends Model
         'otp_expired_at', 
         'correlation_id', 
         'otp_meta',
-        'recipient'
+        'recipient',
+        'profile',
     ];
 
     protected $casts = [

@@ -17,6 +17,7 @@ This package is not tied to Laravel Auth and you can use it to send OTP to any m
 * Validate OTP code based on presence, equality and expiry
 * Throws custom exceptions that you can catch and show your custom messages and dispatch your custom events
 * Model implements prunable for housekeeping
+* Supports profiles for different otp settings
 
 ## Requirements
 
@@ -63,13 +64,26 @@ Apply the migrations:
 This package publishes an `laravel-simple-otp` file inside your applications's `config` folder which contains the settings for this package. Most of the variables are bound to environment variables, but you are free to directly edit this file, or add the configuration keys to the `.env` file.
 
 ```php
-    'otp_type' => env('OTP_TYPE', 'numeric'),
-    'otp_timeout_seconds' => env('OTP_TIMEOUT_SECONDS', 180),
-    'otp_length' => env('OTP_LENGTH', 6),
-    'otp_should_simulate' => env('OTP_SHOULD_SIMULATE', false),
-    'otp_simulated_code' => env('OTP_SIMULATED_CODE'),
-    'otp_retention_days' => env('OTP_RETENTION_DAYS', 0),
+    'default_profile' => env('OTP_DEFAULT_PROFILE', 'default'),
+
+    'otp_profiles' => [
+        'default' => [
+            'otp_type' => env('OTP_TYPE', 'numeric'),
+            'otp_length' => (int) env('OTP_LENGTH', 6),
+            'otp_timeout_seconds' => (int) env('OTP_TIMEOUT_SECONDS', 180),
+            'otp_should_simulate' => env('OTP_SHOULD_SIMULATE', false),
+            'otp_simulated_code' => env('OTP_SIMULATED_CODE'),
+            'otp_retention_days' => (int) env('OTP_RETENTION_DAYS', 0),
+        ],
+        'password_reset' => [
+            'otp_type' => 'alphanumeric',
+            'otp_length' => 8,
+            'otp_timeout_seconds' => 600,
+        ],
+    ],
 ```
+
+Each profile supports `otp_type`, `otp_length`, `otp_timeout_seconds`, `otp_should_simulate`, `otp_simulated_code`, and `otp_retention_days`. Omitted keys on a named profile fall back to `default_profile` values. When no profile is passed at runtime, `default_profile` is used. The resolved profile name is stored on the `profile` column when persisting.
 
 ## Usage
 
@@ -107,7 +121,7 @@ class TestController extends Controller
         $modelId = 1;
         $yourExampleModelObj = App\ExampleModel::find($modelId);
 
-        // generate OTP, it will return an array with otp_code and otp_hash key
+        // generate OTP using default profile (or pass profile name, e.g. 'password_reset')
         $otpCode = $otpHelperService->generateOtpCode();
 
         // model type can be anything but it must be unique if you want to send OTP to multiple model classes
@@ -116,20 +130,15 @@ class TestController extends Controller
         $phoneNumber = $yourExampleModelObj->phone;
 
         // pass 'recipient' key to persist for recipient
-        // optionally pass 'otp_expired_at' for a custom expiry; otherwise config otp_timeout_seconds is used
+        // optionally pass 'profile' for a named profile (expiry comes from profile otp_timeout_seconds)
         $otpData = [
             'actor_id' => $modelId,
             'actor_type' => $modelType,
             'otp_intent' => 'OTP_LOGIN',
-            // 'otp_expired_at' => now()->addMinutes(10),
+            // 'profile' => 'password_reset',
         ];
 
-        /**
-         * create otp 
-         * use createOtp($otpData, false) to add a row for each otp sent
-         * use createOtp($otpData) to update if row exists
-         */
-        $createOtp = $this->otpModel->persistOtpCode($otpCode, $otpData);
+        $persistResult = $otpHelperService->persistOtpCode($otpCode, $otpData);
 
         // send otp using your own code
         $message = 'Your OTP is: '. $otpCode;

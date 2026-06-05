@@ -40,6 +40,7 @@ class SimpleOtpTest extends TestCase
             'correlation_id',
             'otp_meta',
             'recipient',
+            'profile',
         ];
         
         $this->assertEquals($expected, $model->getFillable());
@@ -377,7 +378,7 @@ class SimpleOtpTest extends TestCase
     #[Test]
     public function prunable_returns_empty_query_when_retention_days_is_zero(): void
     {
-        config(['laravel-simple-otp.otp_retention_days' => 0]);
+        $this->setDefaultProfileOverrides(['otp_retention_days' => 0]);
 
         // Create an old expired OTP
         SimpleOtp::create([
@@ -398,7 +399,7 @@ class SimpleOtpTest extends TestCase
     #[Test]
     public function prunable_includes_expired_otps_older_than_retention_period(): void
     {
-        config(['laravel-simple-otp.otp_retention_days' => 30]);
+        $this->setDefaultProfileOverrides(['otp_retention_days' => 30]);
 
         // Old expired OTP (should be pruned)
         $oldExpired = SimpleOtp::create([
@@ -428,7 +429,7 @@ class SimpleOtpTest extends TestCase
     #[Test]
     public function prunable_includes_verified_otps_older_than_retention_period(): void
     {
-        config(['laravel-simple-otp.otp_retention_days' => 30]);
+        $this->setDefaultProfileOverrides(['otp_retention_days' => 30]);
 
         // Old verified OTP (should be pruned)
         $oldVerified = SimpleOtp::create([
@@ -460,7 +461,7 @@ class SimpleOtpTest extends TestCase
     #[Test]
     public function prunable_does_not_include_active_unexpired_otps(): void
     {
-        config(['laravel-simple-otp.otp_retention_days' => 30]);
+        $this->setDefaultProfileOverrides(['otp_retention_days' => 30]);
 
         // Active OTP (not expired, not verified)
         $activeOtp = SimpleOtp::create([

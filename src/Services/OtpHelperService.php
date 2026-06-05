@@ -49,9 +49,61 @@ class OtpHelperService
     }
 
     /**
+     * Get the default profile config array.
+     *
+     * @return array
+     */
+    private function getDefaultProfileConfig(): array
+    {
+        $defaultProfileName = (string) config('laravel-simple-otp.default_profile', 'default');
+        $profiles = config('laravel-simple-otp.otp_profiles', []);
+
+        return $profiles[$defaultProfileName] ?? [];
+    }
+
+    /**
+     * Resolve an OTP profile from config.
+     *
+     * @param  string|null $profileName Profile name or null for default_profile
+     * @return array{
+     *     name: string,
+     *     otp_type: string,
+     *     otp_length: int,
+     *     otp_timeout_seconds: int,
+     *     otp_should_simulate: bool,
+     *     otp_simulated_code: string,
+     *     otp_retention_days: int
+     * }
+     *
+     * @throws \InvalidArgumentException If profile is not defined
+     */
+    private function resolveProfile(?string $profileName): array
+    {
+        $profileName ??= (string) config('laravel-simple-otp.default_profile', 'default');
+        $profiles = config('laravel-simple-otp.otp_profiles', []);
+
+        if (!isset($profiles[$profileName])) {
+            throw new \InvalidArgumentException(sprintf('OTP profile [%s] is not defined.', $profileName));
+        }
+
+        $default = $this->getDefaultProfileConfig();
+        $profile = $profiles[$profileName];
+
+        return [
+            'name' => $profileName,
+            'otp_type' => $profile['otp_type'] ?? $default['otp_type'] ?? 'numeric',
+            'otp_length' => (int) ($profile['otp_length'] ?? $default['otp_length'] ?? 6),
+            'otp_timeout_seconds' => max(1, (int) ($profile['otp_timeout_seconds'] ?? $default['otp_timeout_seconds'] ?? 180)),
+            'otp_should_simulate' => (bool) ($profile['otp_should_simulate'] ?? $default['otp_should_simulate'] ?? false),
+            'otp_simulated_code' => (string) ($profile['otp_simulated_code'] ?? $default['otp_simulated_code'] ?? ''),
+            'otp_retention_days' => (int) ($profile['otp_retention_days'] ?? $default['otp_retention_days'] ?? 0),
+        ];
+    }
+
+    /**
      * Generate a cryptographically secure OTP code.
      *
-     * Supports two OTP types configured via 'laravel-simple-otp.otp_type':
+     * Supports two OTP types per profile:
      * - 'numeric': Digits 1-9 only (no zero to avoid confusion)
      * - 'alphanumeric': Uppercase letters A-Z (excluding O) and digits 1-9
      *
@@ -60,38 +112,36 @@ class OtpHelperService
      * - Excludes ambiguous characters (0, O, o) to prevent user confusion
      * - Simulation mode available for testing (must be disabled in production)
      *
-     * @param  int|null $otpCodeLength Length of OTP to generate (default from config)
+     * @param  string|null $profile Profile name or null for default_profile
      * @return string Generated OTP code
      *
-     * @throws \InvalidArgumentException If length is outside allowed bounds
+     * @throws \InvalidArgumentException If profile is not defined or length is outside allowed bounds
      * @throws \Exception If random_int() fails (insufficient entropy)
      */
-    public function generateOtpCode(?int $otpCodeLength = null): string
+    public function generateOtpCode(?string $profile = null): string
     {
-        $length = $this->resolveOtpLength($otpCodeLength);
+        $resolvedProfile = $this->resolveProfile($profile);
+        $length = $this->validateOtpLength($resolvedProfile['otp_length']);
 
-        // Simulation mode for testing environments
-        if ($this->isSimulationEnabled()) {
-            return $this->getSimulatedOtpCode($length);
+        if ($resolvedProfile['otp_should_simulate']) {
+            return $this->getSimulatedOtpCode($length, $resolvedProfile['otp_simulated_code']);
         }
 
-        return $this->isNumericType()
+        return $this->isNumericType($resolvedProfile['otp_type'])
             ? $this->generateSecureCode(self::NUMERIC_CHARSET, $length)
             : $this->generateSecureCode(self::ALPHANUMERIC_CHARSET, $length);
     }
 
     /**
-     * Resolve and validate OTP length.
+     * Validate OTP length.
      *
-     * @param  int|null $length Requested length or null for default
+     * @param  int $length Requested length
      * @return int Validated length
      *
      * @throws \InvalidArgumentException If length is outside bounds
      */
-    private function resolveOtpLength(?int $length): int
+    private function validateOtpLength(int $length): int
     {
-        $length ??= (int) config('laravel-simple-otp.otp_length', 6);
-
         if ($length < self::MIN_OTP_LENGTH || $length > self::MAX_OTP_LENGTH) {
             throw new \InvalidArgumentException(
                 sprintf('OTP length must be between %d and %d.', self::MIN_OTP_LENGTH, self::MAX_OTP_LENGTH)
@@ -102,23 +152,14 @@ class OtpHelperService
     }
 
     /**
-     * Check if simulation mode is enabled.
-     *
-     * @return bool
-     */
-    private function isSimulationEnabled(): bool
-    {
-        return (bool) config('laravel-simple-otp.otp_should_simulate', false);
-    }
-
-    /**
      * Check if OTP type is numeric.
      *
+     * @param  string $otpType
      * @return bool
      */
-    private function isNumericType(): bool
+    private function isNumericType(string $otpType): bool
     {
-        return config('laravel-simple-otp.otp_type', 'numeric') === 'numeric';
+        return $otpType === 'numeric';
     }
 
     /**
@@ -127,9 +168,8 @@ class OtpHelperService
      * @param  int $length Desired OTP length
      * @return string Simulated OTP code
      */
-    private function getSimulatedOtpCode(int $length): string
+    private function getSimulatedOtpCode(int $length, string $simulatedCode): string
     {
-        $simulatedCode = (string) config('laravel-simple-otp.otp_simulated_code', '');
 
         // Pad or truncate to match requested length
         if (strlen($simulatedCode) < $length) {
@@ -227,7 +267,8 @@ class OtpHelperService
     /**
      * Persist OTP code in the database
      * 
-     * Set otp_expired_at from otpData when provided, otherwise from config otp_timeout_seconds
+     * Set otp_expired_at from profile otp_timeout_seconds
+     * Store resolved profile name on the row
      * Hash code
      * Return expired_at and otp length
      *
@@ -246,14 +287,12 @@ class OtpHelperService
         $recipient = $otpData['recipient'] ?? null;
         $otpMeta = $otpData['otp_meta'] ?? null;
 
+        $resolvedProfile = $this->resolveProfile($otpData['profile'] ?? null);
+
         $otpCodeHash = Hash::make($otpCode);
         $otpGeneratedAt = Carbon::now();
 
-        if (isset($otpData['otp_expired_at'])) {
-            $otpExpiredAt = Carbon::parse($otpData['otp_expired_at']);
-        } else {
-            $otpExpiredAt = $otpGeneratedAt->copy()->addSeconds((int) config('laravel-simple-otp.otp_timeout_seconds'));
-        }
+        $otpExpiredAt = $otpGeneratedAt->copy()->addSeconds($resolvedProfile['otp_timeout_seconds']);
 
         $otp = $this->otpModel->create([
             'actor_id' => $actorId,
@@ -266,6 +305,7 @@ class OtpHelperService
             'correlation_id' => $correlationId,
             'otp_meta' => $otpMeta,
             'recipient' => $recipient,
+            'profile' => $resolvedProfile['name'],
         ]);
 
         return [
