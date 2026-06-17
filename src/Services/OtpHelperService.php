@@ -21,7 +21,7 @@ class OtpHelperService
      * @param  int|null $timeoutSeconds Custom TTL in seconds; null uses config
      * @return int
      */
-    private function resolveOtpTimeoutSeconds(?int $timeoutSeconds)
+    public function resolveOtpTimeoutSeconds(?int $timeoutSeconds)
     {
         if ($timeoutSeconds !== null) {
             return max(1, (int) $timeoutSeconds);
